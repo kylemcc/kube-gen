@@ -49,7 +49,7 @@ Options:
 
 	fmt.Printf(`
 Arguments:
-  template: path of the template file to render, or - to read from STDIN
+  template: path or URL of the template file to render, or - to read from STDIN
   output: (Optional) path to write the rendered content. If not specified,
           rendered content is printed to STDOUT. By default, this file will
           be overwritten if it exists. Use -overwrite=false to return an
