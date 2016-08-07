@@ -2,11 +2,13 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	kubegen "github.com/kylemcc/kube-gen"
 )
@@ -20,6 +22,7 @@ var (
 	watch       bool
 	notifyCmd   string
 	overwrite   bool
+	wait        string
 	showVersion bool
 
 	// build info
@@ -71,6 +74,8 @@ func parseFlags() {
 	flag.BoolVar(&watch, "watch", false, "watch for new events")
 	flag.StringVar(&notifyCmd, "notify", "", "command to run after template generation in complete")
 	flag.BoolVar(&overwrite, "overwrite", true, "overwrite the output file if it exists")
+	flag.StringVar(&wait, "wait", "", "<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires."+
+		"E.g.: 500ms:5s")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -81,6 +86,23 @@ func printVersion() {
 built at: %s
 revision: %s
 `, version, buildTime, revision)
+}
+
+func parseWait() (min time.Duration, max time.Duration, err error) {
+	if len(wait) == 0 {
+		return 0, 0, nil
+	}
+	parts := strings.Split(wait, ":")
+	if min, err = time.ParseDuration(parts[0]); err != nil {
+		return
+	}
+	if len(parts) > 1 {
+		max, err = time.ParseDuration(parts[1])
+		if err == nil && max < min {
+			err = errors.New("max must be greater than or equal to min")
+		}
+	}
+	return
 }
 
 func main() {
@@ -96,6 +118,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	minWait, maxWait, err := parseWait()
+	if err != nil {
+		log.Fatalf("invalid wait value: %v", err)
+	}
+
 	conf := kubegen.Config{
 		Host:          host,
 		Template:      flag.Arg(0),
@@ -104,6 +131,8 @@ func main() {
 		Watch:         watch,
 		NotifyCmd:     notifyCmd,
 		ResourceTypes: types,
+		MinWait:       minWait,
+		MaxWait:       maxWait,
 	}
 
 	gen, err := kubegen.NewGenerator(conf)
