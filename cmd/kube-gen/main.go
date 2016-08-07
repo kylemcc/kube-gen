@@ -23,6 +23,7 @@ var (
 	notifyCmd   string
 	overwrite   bool
 	wait        string
+	interval    int
 	showVersion bool
 
 	// build info
@@ -76,6 +77,7 @@ func parseFlags() {
 	flag.BoolVar(&overwrite, "overwrite", true, "overwrite the output file if it exists")
 	flag.StringVar(&wait, "wait", "", "<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires."+
 		"E.g.: 500ms:5s")
+	flag.IntVar(&interval, "interval", 0, "")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -136,6 +138,7 @@ func main() {
 		ResourceTypes: types,
 		MinWait:       minWait,
 		MaxWait:       maxWait,
+		Interval:      interval,
 	}
 
 	gen, err := kubegen.NewGenerator(conf)

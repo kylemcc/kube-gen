@@ -2,11 +2,11 @@ package kubegen
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	kapi "k8s.io/kubernetes/pkg/api"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
@@ -28,6 +28,8 @@ type Config struct {
 	Watch         bool
 	NotifyCmd     string
 	Interval      int
+	MinWait       time.Duration
+	MaxWait       time.Duration
 	ResourceTypes []string
 }
 
@@ -56,7 +58,6 @@ func (g *generator) Generate() error {
 
 	g.execute()
 	g.watchEvents()
-	g.watchSignals()
 
 	g.Wait()
 	return nil
@@ -70,58 +71,72 @@ func (g *generator) watchEvents() {
 		return
 	}
 
+	var (
+		nWatchers int
+		podCh     chan *kapi.Pod
+		svcCh     chan *kapi.Service
+		epCh      chan *kapi.Endpoints
+		ticker    *time.Ticker
+		tickerCh  <-chan time.Time
+	)
+
 	stopCh := make(chan struct{})
-	podCh := make(chan *kapi.Pod)
-	svcCh := make(chan *kapi.Service)
-	epCh := make(chan *kapi.Endpoints)
 	sigCh := newSigChan()
 
-	var nWatchers int
-	watchPods(g.Client, podCh, stopCh)
-	watchServices(g.Client, svcCh, stopCh)
-	watchEndpoints(g.Client, epCh, stopCh)
+	if len(g.Config.ResourceTypes) == 0 || containsString(g.Config.ResourceTypes, "pods") {
+		nWatchers++
+		podCh = make(chan *kapi.Pod)
+		watchPods(g.Client, podCh, stopCh)
+	}
+	if len(g.Config.ResourceTypes) == 0 || containsString(g.Config.ResourceTypes, "services") {
+		nWatchers++
+		svcCh := make(chan *kapi.Service)
+		watchServices(g.Client, svcCh, stopCh)
+	}
+	if len(g.Config.ResourceTypes) == 0 || containsString(g.Config.ResourceTypes, "endpoints") {
+		nWatchers++
+		epCh := make(chan *kapi.Endpoints)
+		watchEndpoints(g.Client, epCh, stopCh)
+	}
+	if g.Config.Interval > 0 {
+		ticker = time.NewTicker(time.Duration(g.Config.Interval) * time.Second)
+		tickerCh = ticker.C
+	}
+
+	eventCh := make(chan interface{})
+	debounceCh := newDebouncer(eventCh, g.Config.MinWait, g.Config.MaxWait)
+	go func() {
+		for _ = range debounceCh {
+			g.execute()
+		}
+	}()
 
 	g.Add(1)
 	go func() {
 		defer g.Done()
 		for {
 			select {
-			case <-podCh:
-				g.execute()
-			case <-svcCh:
-				g.execute()
-			case <-epCh:
-				g.execute()
+			case p := <-podCh:
+				eventCh <- p
+			case s := <-svcCh:
+				eventCh <- s
+			case e := <-epCh:
+				eventCh <- e
+			case t := <-tickerCh:
+				eventCh <- t
 			case sig := <-sigCh:
 				switch sig {
+				case syscall.SIGHUP:
+					eventCh <- sig
 				case syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM:
+					if ticker != nil {
+						ticker.Stop()
+					}
 					for i := 0; i < nWatchers; i++ {
 						stopCh <- struct{}{}
 					}
 					return
 				}
-			}
-		}
-	}()
-}
-
-func (g *generator) watchSignals() {
-	if !g.Config.Watch {
-		return
-	}
-
-	g.Add(1)
-	go func() {
-		defer g.Done()
-		sigCh := newSigChan()
-		for {
-			sig := <-sigCh
-			log.Printf("received signal: %s\n", sig)
-			switch sig {
-			case syscall.SIGHUP:
-				g.execute()
-			case syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM:
-				return
 			}
 		}
 	}()
@@ -147,4 +162,39 @@ func newSigChan() <-chan os.Signal {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	return ch
+}
+
+func newDebouncer(inCh chan interface{}, minWait, maxWait time.Duration) chan interface{} {
+	if minWait < 1 {
+		return inCh
+	}
+
+	outCh := make(chan interface{}, 100)
+	go func() {
+		var (
+			latestEvent interface{}
+			minTimer    <-chan time.Time
+			maxTimer    <-chan time.Time
+		)
+		for {
+			select {
+			case obj := <-inCh:
+				latestEvent = obj
+				minTimer = time.After(minWait)
+				if maxTimer == nil {
+					maxTimer = time.After(maxWait)
+				}
+			case <-minTimer:
+				minTimer = nil
+				maxTimer = nil
+				outCh <- latestEvent
+			case <-maxTimer:
+				minTimer = nil
+				maxTimer = nil
+				outCh <- latestEvent
+			}
+		}
+	}()
+
+	return outCh
 }
