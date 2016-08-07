@@ -88,15 +88,18 @@ revision: %s
 `, version, buildTime, revision)
 }
 
-func parseWait() (min time.Duration, max time.Duration, err error) {
-	if len(wait) == 0 {
+func parseWait(w string) (min time.Duration, max time.Duration, err error) {
+	w = strings.TrimSpace(w)
+	if len(w) == 0 {
 		return 0, 0, nil
+	} else if w[0] == ':' {
+		return 0, 0, errors.New("minimum is required")
 	}
-	parts := strings.Split(wait, ":")
+	parts := strings.Split(w, ":")
 	if min, err = time.ParseDuration(parts[0]); err != nil {
 		return
 	}
-	if len(parts) > 1 {
+	if len(parts) > 1 && len(parts[1]) > 0 {
 		max, err = time.ParseDuration(parts[1])
 		if err == nil && max < min {
 			err = errors.New("max must be greater than or equal to min")
@@ -118,7 +121,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	minWait, maxWait, err := parseWait()
+	minWait, maxWait, err := parseWait(wait)
 	if err != nil {
 		log.Fatalf("invalid wait value: %v", err)
 	}
