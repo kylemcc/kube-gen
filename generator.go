@@ -22,16 +22,17 @@ var (
 )
 
 type Config struct {
-	Host          string
-	Template      string
-	Output        string
-	Overwrite     bool
-	Watch         bool
-	NotifyCmd     string
-	Interval      int
-	MinWait       time.Duration
-	MaxWait       time.Duration
-	ResourceTypes []string
+	Host           string
+	TemplatePath   string
+	TemplateString string
+	Output         string
+	Overwrite      bool
+	Watch          bool
+	NotifyCmd      string
+	Interval       int
+	MinWait        time.Duration
+	MaxWait        time.Duration
+	ResourceTypes  []string
 }
 
 type Generator interface {

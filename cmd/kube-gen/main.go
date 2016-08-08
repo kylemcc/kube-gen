@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -110,6 +111,10 @@ func parseWait(w string) (min time.Duration, max time.Duration, err error) {
 	return
 }
 
+func tmplFromStdin() ([]byte, error) {
+	return ioutil.ReadAll(os.Stdin)
+}
+
 func main() {
 	parseFlags()
 
@@ -128,17 +133,29 @@ func main() {
 		log.Fatalf("invalid wait value: %v", err)
 	}
 
+	var tmplStr string
+	if flag.Arg(0) == "-" {
+		log.Printf("reading template from stdin")
+		if s, err := tmplFromStdin(); err != nil {
+			log.Fatalf("error reading from stdin: %v", err)
+		} else {
+			fmt.Printf("read from stdin:\n[%s]\n", s)
+			tmplStr = string(s)
+		}
+	}
+
 	conf := kubegen.Config{
-		Host:          host,
-		Template:      flag.Arg(0),
-		Output:        flag.Arg(1),
-		Overwrite:     overwrite,
-		Watch:         watch,
-		NotifyCmd:     notifyCmd,
-		ResourceTypes: types,
-		MinWait:       minWait,
-		MaxWait:       maxWait,
-		Interval:      interval,
+		Host:           host,
+		TemplateString: tmplStr,
+		TemplatePath:   flag.Arg(0),
+		Output:         flag.Arg(1),
+		Overwrite:      overwrite,
+		Watch:          watch,
+		NotifyCmd:      notifyCmd,
+		ResourceTypes:  types,
+		MinWait:        minWait,
+		MaxWait:        maxWait,
+		Interval:       interval,
 	}
 
 	gen, err := kubegen.NewGenerator(conf)
