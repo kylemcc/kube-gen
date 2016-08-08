@@ -178,9 +178,10 @@ func (g *generator) watchEvents() error {
 	// debounce rapidly occurring events
 	debounceCh := newDebouncer(eventCh, g.Config.MinWait, g.Config.MaxWait)
 	go func() {
-		for e := range debounceCh {
-			log.Printf("event received: %#v\n", e)
-			g.execute()
+		for _ = range debounceCh {
+			if err := g.execute(); err != nil {
+				log.Printf("error rendering template: %v\n", err)
+			}
 		}
 	}()
 
