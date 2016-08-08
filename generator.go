@@ -74,7 +74,7 @@ func (g *generator) Generate() error {
 		}
 	} else {
 		// initial render
-		g.execute()
+		return g.execute()
 	}
 
 	g.Wait()
