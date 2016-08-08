@@ -145,7 +145,7 @@ func main() {
 		if s, err := tmplFromStdin(); err != nil {
 			log.Fatalf("error reading from stdin: %v", err)
 		} else {
-			tmplStr = string(s)
+			tmplStr = strings.TrimSpace(string(s))
 		}
 	}
 	if flag.Arg(1) == "" {
