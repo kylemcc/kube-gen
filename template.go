@@ -6,8 +6,6 @@ import (
 	"text/template"
 )
 
-var Funcs = template.FuncMap{}
-
 func newTemplate(name string) *template.Template {
 	return template.New(name).Funcs(Funcs)
 }
