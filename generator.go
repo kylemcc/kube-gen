@@ -311,7 +311,7 @@ func newDebouncer(inCh chan interface{}, minWait, maxWait time.Duration) chan in
 			case obj := <-inCh:
 				latestEvent = obj
 				minTimer = time.After(minWait)
-				if maxTimer == nil {
+				if maxTimer == nil && maxWait > 0 {
 					maxTimer = time.After(maxWait)
 				}
 			case <-minTimer:
