@@ -139,9 +139,11 @@ func main() {
 		if s, err := tmplFromStdin(); err != nil {
 			log.Fatalf("error reading from stdin: %v", err)
 		} else {
-			fmt.Printf("read from stdin:\n[%s]\n", s)
 			tmplStr = string(s)
 		}
+	}
+	if flag.Arg(1) == "" {
+		log.Printf("writing output to stdout")
 	}
 
 	conf := kubegen.Config{
