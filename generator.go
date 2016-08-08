@@ -64,10 +64,15 @@ func (g *generator) Generate() error {
 		return err
 	}
 
-	// initial render
-	g.execute()
-	// watch for updates
-	g.watchEvents()
+	if g.Config.Watch {
+		// watch for updates
+		if err := g.watchEvents(); err != nil {
+			return err
+		}
+	} else {
+		// initial render
+		g.execute()
+	}
 
 	g.Wait()
 	return nil
@@ -103,9 +108,9 @@ func (g *generator) execute() error {
 	return nil
 }
 
-func (g *generator) watchEvents() {
+func (g *generator) watchEvents() error {
 	if !g.Config.Watch {
-		return
+		return nil
 	}
 
 	var (
@@ -125,17 +130,23 @@ func (g *generator) watchEvents() {
 	if g.loadPods {
 		nWatchers++
 		podCh = make(chan *kapi.Pod)
-		watchPods(g.Client, podCh, stopCh)
+		if err := watchPods(g.Client, podCh, stopCh); err != nil {
+			return err
+		}
 	}
 	if g.loadSvcs {
 		nWatchers++
 		svcCh := make(chan *kapi.Service)
-		watchServices(g.Client, svcCh, stopCh)
+		if err := watchServices(g.Client, svcCh, stopCh); err != nil {
+			return err
+		}
 	}
 	if g.loadEps {
 		nWatchers++
 		epCh := make(chan *kapi.Endpoints)
-		watchEndpoints(g.Client, epCh, stopCh)
+		if err := watchEndpoints(g.Client, epCh, stopCh); err != nil {
+			return err
+		}
 	}
 	if g.Config.Interval > 0 {
 		ticker = time.NewTicker(time.Duration(g.Config.Interval) * time.Second)
@@ -183,6 +194,7 @@ func (g *generator) watchEvents() {
 			}
 		}
 	}()
+	return nil
 }
 
 func (g *generator) validateConfig() error {
@@ -228,10 +240,12 @@ func newDebouncer(inCh chan interface{}, minWait, maxWait time.Duration) chan in
 					maxTimer = time.After(maxWait)
 				}
 			case <-minTimer:
+				log.Printf("min wait time reached")
 				minTimer = nil
 				maxTimer = nil
 				outCh <- latestEvent
 			case <-maxTimer:
+				log.Printf("max wait time reached")
 				minTimer = nil
 				maxTimer = nil
 				outCh <- latestEvent
