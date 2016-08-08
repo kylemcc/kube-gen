@@ -2,6 +2,7 @@ package kubegen
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -41,13 +42,20 @@ type generator struct {
 	sync.WaitGroup
 	Config Config
 	Client *kclient.Client
+
+	loadPods bool
+	loadSvcs bool
+	loadEps  bool
 }
 
 func NewGenerator(c Config) (Generator, error) {
 	kclient, err := newKubeClient(c)
 	return &generator{
-		Config: c,
-		Client: kclient,
+		Config:   c,
+		Client:   kclient,
+		loadPods: len(c.ResourceTypes) == 0 || containsString(c.ResourceTypes, "pods"),
+		loadSvcs: len(c.ResourceTypes) == 0 || containsString(c.ResourceTypes, "services"),
+		loadEps:  len(c.ResourceTypes) == 0 || containsString(c.ResourceTypes, "endpoints"),
 	}, err
 }
 
@@ -56,14 +64,43 @@ func (g *generator) Generate() error {
 		return err
 	}
 
+	// initial render
 	g.execute()
+	// watch for updates
 	g.watchEvents()
 
 	g.Wait()
 	return nil
 }
 
-func (g *generator) execute() {
+func (g *generator) execute() error {
+	ctx := &Context{}
+
+	log.Println("refreshing state...")
+	start := time.Now()
+	if g.loadPods {
+		if p, err := g.Client.Pods(kapi.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+			return fmt.Errorf("error loading pods: %v", err)
+		} else {
+			ctx.Pods = p.Items
+		}
+	}
+	if g.loadSvcs {
+		if p, err := g.Client.Services(kapi.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+			return fmt.Errorf("error loading services: %v", err)
+		} else {
+			ctx.Services = p.Items
+		}
+	}
+	if g.loadEps {
+		if p, err := g.Client.Endpoints(kapi.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+			return fmt.Errorf("error loading endpoints: %v", err)
+		} else {
+			ctx.Endpoints = p.Items
+		}
+	}
+	log.Printf("done. took %v\n", time.Since(start))
+	return nil
 }
 
 func (g *generator) watchEvents() {
@@ -80,20 +117,22 @@ func (g *generator) watchEvents() {
 		tickerCh  <-chan time.Time
 	)
 
+	// channel for signaling shutdown to watchers
 	stopCh := make(chan struct{})
+	// channel for receiving signals
 	sigCh := newSigChan()
 
-	if len(g.Config.ResourceTypes) == 0 || containsString(g.Config.ResourceTypes, "pods") {
+	if g.loadPods {
 		nWatchers++
 		podCh = make(chan *kapi.Pod)
 		watchPods(g.Client, podCh, stopCh)
 	}
-	if len(g.Config.ResourceTypes) == 0 || containsString(g.Config.ResourceTypes, "services") {
+	if g.loadSvcs {
 		nWatchers++
 		svcCh := make(chan *kapi.Service)
 		watchServices(g.Client, svcCh, stopCh)
 	}
-	if len(g.Config.ResourceTypes) == 0 || containsString(g.Config.ResourceTypes, "endpoints") {
+	if g.loadEps {
 		nWatchers++
 		epCh := make(chan *kapi.Endpoints)
 		watchEndpoints(g.Client, epCh, stopCh)
@@ -103,14 +142,18 @@ func (g *generator) watchEvents() {
 		tickerCh = ticker.C
 	}
 
+	// channel for receiving events from the kubernetes api
 	eventCh := make(chan interface{})
+	// debounce rapidly occurring events
 	debounceCh := newDebouncer(eventCh, g.Config.MinWait, g.Config.MaxWait)
 	go func() {
-		for _ = range debounceCh {
+		for e := range debounceCh {
+			log.Printf("event received: %#v\n", e)
 			g.execute()
 		}
 	}()
 
+	// watch for various events that trigger template rendering
 	g.Add(1)
 	go func() {
 		defer g.Done()
