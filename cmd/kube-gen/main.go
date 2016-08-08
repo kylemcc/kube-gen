@@ -25,6 +25,7 @@ var (
 	overwrite   bool
 	wait        string
 	interval    int
+	quiet       bool
 	showVersion bool
 
 	// build info
@@ -79,6 +80,7 @@ func parseFlags() {
 	flag.StringVar(&wait, "wait", "", "<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires."+
 		"E.g.: 500ms:5s")
 	flag.IntVar(&interval, "interval", 0, "")
+	flag.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -117,6 +119,10 @@ func tmplFromStdin() ([]byte, error) {
 
 func main() {
 	parseFlags()
+
+	if quiet {
+		log.SetOutput(ioutil.Discard)
+	}
 
 	if showVersion {
 		printVersion()
