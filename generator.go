@@ -1,7 +1,9 @@
 package kubegen
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -106,6 +108,23 @@ func (g *generator) execute() error {
 		}
 	}
 	log.Printf("done. took %v\n", time.Since(start))
+
+	var (
+		content []byte
+		err     error
+	)
+	if g.Config.TemplateString != "" {
+		content, err = execTemplateString(g.Config.TemplateString, ctx)
+	} else {
+		content, err = execTemplateFile(g.Config.TemplatePath, ctx)
+	}
+	if err != nil {
+		return err
+	}
+	if err := g.writeFile(content); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -195,6 +214,60 @@ func (g *generator) watchEvents() error {
 			}
 		}
 	}()
+	return nil
+}
+
+func (g *generator) writeFile(content []byte) error {
+	if g.Config.Output == "" {
+		os.Stdout.Write(content)
+		return nil
+	}
+
+	// write to a temp file first so we can copy it into place with a single atomic operation
+	tmp, err := ioutil.TempFile("", fmt.Sprintf("kube-gen-%d", time.Now().UnixNano()))
+	defer func() {
+		tmp.Close()
+		os.Remove(tmp.Name())
+	}()
+	if err != nil {
+		return fmt.Errorf("error creating temp file: %v", err)
+	}
+
+	if _, err := tmp.Write(content); err != nil {
+		return fmt.Errorf("error writing temp file: %v", err)
+	}
+
+	var (
+		oldContent []byte
+		exists     bool
+	)
+	if fi, err := os.Stat(g.Config.Output); err == nil {
+		exists = true
+		// set permissions and ownership on new file
+		if err := tmp.Chmod(fi.Mode()); err != nil {
+			return fmt.Errorf("error setting file permissions: %v", err)
+		}
+		if err := tmp.Chown(int(fi.Sys().(*syscall.Stat_t).Uid), int(fi.Sys().(*syscall.Stat_t).Gid)); err != nil {
+			return fmt.Errorf("error changing file owner: %v", err)
+		}
+		if oldContent, err = ioutil.ReadFile(g.Config.Output); err != nil {
+			return fmt.Errorf("error comparing old version: %v", err)
+		}
+	}
+
+	if bytes.Compare(oldContent, content) != 0 {
+		// Always overwrite in watch mode - doesn't make sense
+		// to watch and not overwrite
+		if exists && !g.Config.Watch && !g.Config.Overwrite {
+			return fmt.Errorf("output file already exists")
+		}
+
+		if err = os.Rename(tmp.Name(), g.Config.Output); err != nil {
+			return fmt.Errorf("error creating output file: %v", err)
+		}
+		log.Printf("output file [%s] created\n", g.Config.Output)
+	}
+
 	return nil
 }
 
