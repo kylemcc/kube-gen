@@ -2,8 +2,8 @@ package kubegen
 
 import (
 	"bytes"
-	"html/template"
 	"path/filepath"
+	"text/template"
 )
 
 var Funcs = template.FuncMap{}
