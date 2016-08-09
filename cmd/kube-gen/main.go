@@ -18,15 +18,17 @@ type stringSlice []string
 
 var (
 	// flags
-	host        string
-	types       stringSlice
-	watch       bool
-	notifyCmd   string
-	overwrite   bool
-	wait        string
-	interval    int
-	quiet       bool
-	showVersion bool
+	host         string
+	types        stringSlice
+	watch        bool
+	preCmd       string
+	postCmd      string
+	logCmdOutput bool
+	overwrite    bool
+	wait         string
+	interval     int
+	quiet        bool
+	showVersion  bool
 
 	// build info
 	version   string
@@ -75,7 +77,9 @@ func parseFlags() {
 		"If not specified, all types will be returned")
 	flag.BoolVar(&showVersion, "version", false, "display version information")
 	flag.BoolVar(&watch, "watch", false, "watch for new events")
-	flag.StringVar(&notifyCmd, "notify", "", "command to run after template generation in complete")
+	flag.StringVar(&preCmd, "pre-cmd", "", "command to run before template generation")
+	flag.StringVar(&postCmd, "post-cmd", "", "command to run after template generation in complete")
+	flag.BoolVar(&logCmdOutput, "log-cmd", true, "log the output of the pre/post commands")
 	flag.BoolVar(&overwrite, "overwrite", true, "overwrite the output file if it exists")
 	flag.StringVar(&wait, "wait", "", "<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires."+
 		"E.g.: 500ms:5s")
@@ -159,7 +163,8 @@ func main() {
 		Output:         flag.Arg(1),
 		Overwrite:      overwrite,
 		Watch:          watch,
-		NotifyCmd:      notifyCmd,
+		PreCmd:         preCmd,
+		PostCmd:        postCmd,
 		ResourceTypes:  types,
 		MinWait:        minWait,
 		MaxWait:        maxWait,

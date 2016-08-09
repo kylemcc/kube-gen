@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -30,7 +31,9 @@ type Config struct {
 	Output         string
 	Overwrite      bool
 	Watch          bool
-	NotifyCmd      string
+	PreCmd         string
+	PostCmd        string
+	LogCmdOutput   bool
 	Interval       int
 	MinWait        time.Duration
 	MaxWait        time.Duration
@@ -121,11 +124,14 @@ func (g *generator) execute() error {
 	if err != nil {
 		return err
 	}
+
+	if err := g.runCmd(g.Config.PreCmd); err != nil {
+		return err
+	}
 	if err := g.writeFile(content); err != nil {
 		return err
 	}
-
-	return nil
+	return g.runCmd(g.Config.PostCmd)
 }
 
 func (g *generator) watchEvents() error {
@@ -269,6 +275,23 @@ func (g *generator) writeFile(content []byte) error {
 		log.Printf("output file [%s] created\n", g.Config.Output)
 	}
 
+	return nil
+}
+
+func (g *generator) runCmd(cs string) error {
+	if cs == "" {
+		return nil
+	}
+
+	log.Printf("running command [%v]\n", cs)
+	cmd := exec.Command("/bin/sh", "-c", cs)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error running command: %v", err)
+	}
+	if g.Config.LogCmdOutput {
+		log.Printf("%s: %s\n", cs, out)
+	}
 	return nil
 }
 
