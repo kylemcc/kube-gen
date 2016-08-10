@@ -160,12 +160,12 @@ func (g *generator) watchEvents() error {
 	}
 	if g.loadSvcs {
 		nWatchers++
-		svcCh := make(chan *kapi.Service)
+		svcCh = make(chan *kapi.Service)
 		watchServices(g.Client, svcCh, stopCh)
 	}
 	if g.loadEps {
 		nWatchers++
-		epCh := make(chan *kapi.Endpoints)
+		epCh = make(chan *kapi.Endpoints)
 		watchEndpoints(g.Client, epCh, stopCh)
 	}
 	if g.Config.Interval > 0 {
