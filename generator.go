@@ -156,23 +156,17 @@ func (g *generator) watchEvents() error {
 	if g.loadPods {
 		nWatchers++
 		podCh = make(chan *kapi.Pod)
-		if err := watchPods(g.Client, podCh, stopCh); err != nil {
-			return err
-		}
+		watchPods(g.Client, podCh, stopCh)
 	}
 	if g.loadSvcs {
 		nWatchers++
 		svcCh := make(chan *kapi.Service)
-		if err := watchServices(g.Client, svcCh, stopCh); err != nil {
-			return err
-		}
+		watchServices(g.Client, svcCh, stopCh)
 	}
 	if g.loadEps {
 		nWatchers++
 		epCh := make(chan *kapi.Endpoints)
-		if err := watchEndpoints(g.Client, epCh, stopCh); err != nil {
-			return err
-		}
+		watchEndpoints(g.Client, epCh, stopCh)
 	}
 	if g.Config.Interval > 0 {
 		ticker = time.NewTicker(time.Duration(g.Config.Interval) * time.Second)

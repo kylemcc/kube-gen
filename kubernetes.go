@@ -1,16 +1,13 @@
 package kubegen
 
 import (
-	"fmt"
-	"log"
-
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	kcache "k8s.io/kubernetes/pkg/client/cache"
 	krest "k8s.io/kubernetes/pkg/client/restclient"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	kframework "k8s.io/kubernetes/pkg/controller/framework"
 	kselector "k8s.io/kubernetes/pkg/fields"
-	kwatch "k8s.io/kubernetes/pkg/watch"
 )
 
 // Initializes a new Kubernetes API Client
@@ -37,77 +34,80 @@ func epListWatch(client *kclient.Client) *kcache.ListWatch {
 	return kcache.NewListWatchFromClient(client, "endpoints", kapi.NamespaceAll, kselector.Everything())
 }
 
-func watchPods(client *kclient.Client, ch chan<- *kapi.Pod, stopCh chan struct{}) error {
-	w, err := client.Pods(kapi.NamespaceAll).Watch(kapi.ListOptions{Watch: true})
-	if err != nil {
-		return fmt.Errorf("error starting pod watcher: %v", err)
-	}
-	go func() {
-		for {
-			select {
-			case e := <-w.ResultChan():
-				switch e.Type {
-				case kwatch.Added, kwatch.Modified, kwatch.Deleted:
-					if p, ok := e.Object.(*kapi.Pod); ok {
-						ch <- p
-					}
-				case kwatch.Error:
-					log.Printf("watch error: %v\n", e.Object)
+func watchPods(client *kclient.Client, ch chan<- *kapi.Pod, stopCh chan struct{}) kcache.Store {
+	store, controller := kframework.NewInformer(
+		podsListWatch(client),
+		&kapi.Pod{},
+		0,
+		kframework.ResourceEventHandlerFuncs{
+			AddFunc: func(v interface{}) {
+				if p, ok := v.(*kapi.Pod); ok {
+					ch <- p
 				}
-			case <-stopCh:
-				w.Stop()
-			}
-		}
-	}()
-	return nil
+			},
+			UpdateFunc: func(ov, nv interface{}) {
+				if p, ok := nv.(*kapi.Pod); ok {
+					ch <- p
+				}
+			},
+			DeleteFunc: func(v interface{}) {
+				if p, ok := v.(*kapi.Pod); ok {
+					ch <- p
+				}
+			},
+		})
+	go controller.Run(stopCh)
+	return store
 }
 
-func watchServices(client *kclient.Client, ch chan<- *kapi.Service, stopCh chan struct{}) error {
-	w, err := client.Services(kapi.NamespaceAll).Watch(kapi.ListOptions{Watch: true})
-	if err != nil {
-		return fmt.Errorf("error starting service watcher: %v", err)
-	}
-	go func() {
-		for {
-			select {
-			case e := <-w.ResultChan():
-				switch e.Type {
-				case kwatch.Added, kwatch.Modified, kwatch.Deleted:
-					if p, ok := e.Object.(*kapi.Service); ok {
-						ch <- p
-					}
-				case kwatch.Error:
-					log.Printf("watch error: %v\n", e.Object)
+func watchServices(client *kclient.Client, ch chan<- *kapi.Service, stopCh chan struct{}) kcache.Store {
+	store, controller := kframework.NewInformer(
+		svcListWatch(client),
+		&kapi.Service{},
+		0,
+		kframework.ResourceEventHandlerFuncs{
+			AddFunc: func(v interface{}) {
+				if s, ok := v.(*kapi.Service); ok {
+					ch <- s
 				}
-			case <-stopCh:
-				w.Stop()
-			}
-		}
-	}()
-	return nil
+			},
+			UpdateFunc: func(ov, nv interface{}) {
+				if s, ok := nv.(*kapi.Service); ok {
+					ch <- s
+				}
+			},
+			DeleteFunc: func(v interface{}) {
+				if s, ok := v.(*kapi.Service); ok {
+					ch <- s
+				}
+			},
+		})
+	go controller.Run(stopCh)
+	return store
 }
 
-func watchEndpoints(client *kclient.Client, ch chan<- *kapi.Endpoints, stopCh chan struct{}) error {
-	w, err := client.Endpoints(kapi.NamespaceAll).Watch(kapi.ListOptions{Watch: true})
-	if err != nil {
-		return fmt.Errorf("error starting pod watcher: %v", err)
-	}
-	go func() {
-		for {
-			select {
-			case e := <-w.ResultChan():
-				switch e.Type {
-				case kwatch.Added, kwatch.Modified, kwatch.Deleted:
-					if p, ok := e.Object.(*kapi.Endpoints); ok {
-						ch <- p
-					}
-				case kwatch.Error:
-					log.Printf("watch error: %v\n", e.Object)
+func watchEndpoints(client *kclient.Client, ch chan<- *kapi.Endpoints, stopCh chan struct{}) kcache.Store {
+	store, controller := kframework.NewInformer(
+		svcListWatch(client),
+		&kapi.Endpoints{},
+		0,
+		kframework.ResourceEventHandlerFuncs{
+			AddFunc: func(v interface{}) {
+				if e, ok := v.(*kapi.Endpoints); ok {
+					ch <- e
 				}
-			case <-stopCh:
-				w.Stop()
-			}
-		}
-	}()
-	return nil
+			},
+			UpdateFunc: func(ov, nv interface{}) {
+				if e, ok := nv.(*kapi.Endpoints); ok {
+					ch <- e
+				}
+			},
+			DeleteFunc: func(v interface{}) {
+				if e, ok := v.(*kapi.Endpoints); ok {
+					ch <- e
+				}
+			},
+		})
+	go controller.Run(stopCh)
+	return store
 }
