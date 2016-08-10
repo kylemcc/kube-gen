@@ -88,7 +88,7 @@ func watchServices(client *kclient.Client, ch chan<- *kapi.Service, stopCh chan 
 
 func watchEndpoints(client *kclient.Client, ch chan<- *kapi.Endpoints, stopCh chan struct{}) kcache.Store {
 	store, controller := kframework.NewInformer(
-		svcListWatch(client),
+		epListWatch(client),
 		&kapi.Endpoints{},
 		0,
 		kframework.ResourceEventHandlerFuncs{
