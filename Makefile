@@ -1,4 +1,8 @@
 PACKAGES:=$(shell go list ./...)
+BUILD_TIME:=`date -u '+%Y-%m-%dT%H:%M:%S'`
+REVISION:=`git rev-parse HEAD`
+LDFLAGS=-X main.version=$(VERSION) -X main.buildTime=$(BUILD_TIME) -X main.revision=$(REVISION)
+VERSION?=$(REVISION)
 
 all: kube-gen
 
@@ -6,10 +10,11 @@ clean:
 	rm -rf dist/
 
 kube-gen: need-fmt vet test
-	go install ./cmd/kube-gen
+	go install -ldflags "$(LDFLAGS)" ./cmd/kube-gen
 
 dist: kube-gen
-	gox -os='!windows,!plan9' -output="dist2/{{.OS}}_{{.Arch}}/kube-gen" ./...
+	echo "Building version $(VERSION) / revision $(REVISION)"
+	gox -os='!windows !plan9' -output="dist/{{.OS}}-{{.Arch}}/kube-gen" -ldflags "$(LDFLAGS)" ./...
 
 vet:
 	go vet ./...
