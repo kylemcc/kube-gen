@@ -8,13 +8,21 @@ all: kube-gen
 
 clean:
 	rm -rf dist/
+	rm -rf build/
 
 kube-gen: need-fmt vet test
 	go install -ldflags "$(LDFLAGS)" ./cmd/kube-gen
 
-dist: kube-gen
+build: clean kube-gen
 	echo "Building version $(VERSION) / revision $(REVISION)"
-	gox -os='!windows !plan9' -output="dist/{{.OS}}-{{.Arch}}/kube-gen" -ldflags "$(LDFLAGS)" ./...
+	gox -os='!windows !plan9' -output="build/{{.OS}}-{{.Arch}}/kube-gen" -ldflags "$(LDFLAGS)" ./...
+
+dist: build
+	mkdir dist; \
+	for build in $(shell ls build/); do \
+		tar -czvf dist/kube-gen-$${build}-$(VERSION).tar.gz -C build/$${build} kube-gen; \
+	done; \
+	cd dist && shasum -a 256 * > sha256sums.txt
 
 vet:
 	go vet ./...
