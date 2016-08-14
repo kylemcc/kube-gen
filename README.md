@@ -9,7 +9,7 @@
 
 #### Binary Download
 
-TODO: upload binary builds
+See the [Releases](https://github.com/kylemcc/kube-gen/releases) page
 
 #### Docker Container
 
