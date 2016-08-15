@@ -34,6 +34,8 @@ var (
 	version   string
 	buildTime string
 	revision  string
+
+	flags = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 )
 
 // implement flag.Value interface
@@ -53,7 +55,7 @@ Render templates using Kubernetes metadata and events
 
 Options:
 `)
-	flag.PrintDefaults()
+	flags.PrintDefaults()
 
 	fmt.Printf(`
 Arguments:
@@ -62,32 +64,26 @@ Arguments:
           rendered content is printed to STDOUT. By default, this file will
           be overwritten if it exists. Use -overwrite=false to return an
           error instead
-
-Environment Variables:
-  KUBERNETES_SERVICE_HOST
-  KUBERNETES_SERVICE_PORT
-
-Examples:
 `)
 }
 
 func parseFlags() {
-	flag.StringVar(&host, "host", "http://localhost:8001", "")
-	flag.Var(&types, "type", "types of resources to pull [pods, services, endpoints] - May be specified multiple times. "+
+	flags.StringVar(&host, "host", "http://localhost:8001", "")
+	flags.Var(&types, "type", "types of resources to pull [pods, services, endpoints] - May be specified multiple times. "+
 		"If not specified, all types will be returned")
-	flag.BoolVar(&showVersion, "version", false, "display version information")
-	flag.BoolVar(&watch, "watch", false, "watch for new events")
-	flag.StringVar(&preCmd, "pre-cmd", "", "command to run before template generation")
-	flag.StringVar(&postCmd, "post-cmd", "", "command to run after template generation in complete")
-	flag.BoolVar(&logCmdOutput, "log-cmd", true, "log the output of the pre/post commands")
-	flag.BoolVar(&overwrite, "overwrite", true, "overwrite the output file if it exists")
-	flag.StringVar(&wait, "wait", "", "<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires."+
+	flags.BoolVar(&showVersion, "version", false, "display version information")
+	flags.BoolVar(&watch, "watch", false, "watch for new events")
+	flags.StringVar(&preCmd, "pre-cmd", "", "command to run before template generation")
+	flags.StringVar(&postCmd, "post-cmd", "", "command to run after template generation in complete")
+	flags.BoolVar(&logCmdOutput, "log-cmd", true, "log the output of the pre/post commands")
+	flags.BoolVar(&overwrite, "overwrite", true, "overwrite the output file if it exists")
+	flags.StringVar(&wait, "wait", "", "<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires."+
 		"E.g.: 500ms:5s")
-	flag.IntVar(&interval, "interval", 0, "")
-	flag.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
+	flags.IntVar(&interval, "interval", 0, "")
+	flags.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
 
 	flag.Usage = usage
-	flag.Parse()
+	flags.Parse(os.Args[1:])
 }
 
 func printVersion() {
