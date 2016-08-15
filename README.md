@@ -30,20 +30,12 @@ Usage: kube-gen [options] <template> [<output>]
 Render templates using Kubernetes metadata and events
 
 Options:
-  -alsologtostderr
-    	log to standard error as well as files
   -host string
     	 (default "http://localhost:8001")
   -interval int
 
   -log-cmd
     	log the output of the pre/post commands (default true)
-  -log_backtrace_at value
-    	when logging hits line file:N, emit a stack trace (default :0)
-  -log_dir string
-    	If non-empty, write log files in this directory
-  -logtostderr
-    	log to standard error instead of files
   -overwrite
     	overwrite the output file if it exists (default true)
   -post-cmd string
@@ -52,16 +44,10 @@ Options:
     	command to run before template generation
   -quiet
     	when set to true, nothing is logged
-  -stderrthreshold value
-    	logs at or above this threshold go to stderr
   -type value
     	types of resources to pull [pods, services, endpoints] - May be specified multiple times. If not specified, all types will be returned
-  -v value
-    	log level for V logs
   -version
     	display version information
-  -vmodule value
-    	comma-separated list of pattern=N settings for file-filtered logging
   -wait string
     	<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires.E.g.: 500ms:5s
   -watch
@@ -73,12 +59,6 @@ Arguments:
           rendered content is printed to STDOUT. By default, this file will
           be overwritten if it exists. Use -overwrite=false to return an
           error instead
-
-Environment Variables:
-  KUBERNETES_SERVICE_HOST
-  KUBERNETES_SERVICE_PORT
-
-Examples:
 ```
 
 #### Authentication / Connecting to the Kubernetes API
