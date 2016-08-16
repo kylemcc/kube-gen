@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -87,10 +88,11 @@ func parseFlags() {
 }
 
 func printVersion() {
-	fmt.Printf(`kube-gen v%s
+	fmt.Printf(`version:  %s
 built at: %s
 revision: %s
-`, version, buildTime, revision)
+runtime:  %s
+`, version, buildTime, revision, runtime.Version())
 }
 
 func parseWait(w string) (min time.Duration, max time.Duration, err error) {
