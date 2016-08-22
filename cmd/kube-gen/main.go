@@ -83,7 +83,7 @@ func parseFlags() {
 	flags.IntVar(&interval, "interval", 0, "")
 	flags.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
 
-	flag.Usage = usage
+	flags.Usage = usage
 	flags.Parse(os.Args[1:])
 }
 
@@ -131,8 +131,8 @@ func main() {
 		return
 	}
 
-	if narg := flag.NArg(); narg < 1 || narg > 2 {
-		flag.Usage()
+	if narg := flags.NArg(); narg < 1 || narg > 2 {
+		flags.Usage()
 		os.Exit(1)
 	}
 
@@ -142,7 +142,7 @@ func main() {
 	}
 
 	var tmplStr string
-	if flag.Arg(0) == "-" {
+	if flags.Arg(0) == "-" {
 		log.Printf("reading template from stdin")
 		if s, err := tmplFromStdin(); err != nil {
 			log.Fatalf("error reading from stdin: %v", err)
@@ -150,15 +150,15 @@ func main() {
 			tmplStr = strings.TrimSpace(string(s))
 		}
 	}
-	if flag.Arg(1) == "" {
+	if flags.Arg(1) == "" {
 		log.Printf("writing output to stdout")
 	}
 
 	conf := kubegen.Config{
 		Host:           host,
 		TemplateString: tmplStr,
-		TemplatePath:   flag.Arg(0),
-		Output:         flag.Arg(1),
+		TemplatePath:   flags.Arg(0),
+		Output:         flags.Arg(1),
 		Overwrite:      overwrite,
 		Watch:          watch,
 		PreCmd:         preCmd,
