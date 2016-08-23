@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -25,6 +27,7 @@ var Funcs = template.FuncMap{
 	"hasField":      hasField,
 	"intersect":     intersect,
 	"json":          marshalJson,
+	"pathJoin":      filepath.Join,
 	"keys":          keys,
 	"last":          last,
 	"dict":          dict,
@@ -32,6 +35,7 @@ var Funcs = template.FuncMap{
 	"parseBool":     strconv.ParseBool,
 	"parseJson":     unmarshalJson,
 	"replace":       strings.Replace,
+	"shell":         execShell,
 	"split":         strings.Split,
 	"splitN":        strings.SplitN,
 	"strContains":   strings.Contains,
@@ -79,7 +83,7 @@ func values(input interface{}) (interface{}, error) {
 
 	val := reflect.ValueOf(input)
 	if val.Kind() != reflect.Map {
-		return nil, fmt.Errorf("Cannot call keys on a non-map value: %v", input)
+		return nil, fmt.Errorf("Cannot call values on a non-map value: %v", input)
 	}
 
 	keys := val.MapKeys()
@@ -105,4 +109,27 @@ func unmarshalJson(input string) (interface{}, error) {
 		return nil, err
 	}
 	return v, nil
+}
+
+type ShellResult struct {
+	Success bool
+	Stdout  string
+	Stderr  string
+}
+
+func execShell(cs string) *ShellResult {
+	var (
+		stdout bytes.Buffer
+		stderr bytes.Buffer
+	)
+	cmd := exec.Command("/bin/sh", "-c", cs)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	res := &ShellResult{
+		Success: err == nil,
+		Stdout:  stdout.String(),
+		Stderr:  stderr.String(),
+	}
+	return res
 }
