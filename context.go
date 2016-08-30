@@ -19,6 +19,7 @@ type Context struct {
 	Endpoints []kapi.Endpoints
 }
 
+// TODO: if running in k8s, make annotations on containing pod available
 func (c *Context) Env() map[string]string {
 	envOnce.Do(loadEnv)
 	return envMap
