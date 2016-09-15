@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	kapi "k8s.io/kubernetes/pkg/api"
 )
 
 var Funcs = template.FuncMap{
@@ -26,6 +28,7 @@ var Funcs = template.FuncMap{
 	"hasSuffix":     strings.HasSuffix,
 	"hasField":      hasField,
 	"intersect":     intersect,
+	"isPodReady":    kapi.IsPodReady,
 	"json":          marshalJson,
 	"pathJoin":      filepath.Join,
 	"keys":          keys,
