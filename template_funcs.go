@@ -28,7 +28,7 @@ var Funcs = template.FuncMap{
 	"hasSuffix":     strings.HasSuffix,
 	"hasField":      hasField,
 	"intersect":     intersect,
-	"isPodReady":    kapi.IsPodReady,
+	"isPodReady":    isPodReady,
 	"json":          marshalJson,
 	"pathJoin":      filepath.Join,
 	"keys":          keys,
@@ -135,4 +135,8 @@ func execShell(cs string) *ShellResult {
 		Stderr:  stderr.String(),
 	}
 	return res
+}
+
+func isPodReady(pod kapi.Pod) bool {
+	return kapi.IsPodReady(&pod)
 }
