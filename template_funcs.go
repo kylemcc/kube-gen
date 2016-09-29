@@ -29,6 +29,8 @@ var Funcs = template.FuncMap{
 	"hasField":      hasField,
 	"intersect":     intersect,
 	"isPodReady":    isPodReady,
+	"allPodsReady":  allPodsReady,
+	"anyPodReady":   anyPodReady,
 	"json":          marshalJson,
 	"pathJoin":      filepath.Join,
 	"keys":          keys,
@@ -139,4 +141,22 @@ func execShell(cs string) *ShellResult {
 
 func isPodReady(pod kapi.Pod) bool {
 	return kapi.IsPodReady(&pod)
+}
+
+func allPodsReady(pods []kapi.Pod) bool {
+	for _, p := range pods {
+		if !isPodReady(p) {
+			return false
+		}
+	}
+	return true
+}
+
+func anyPodReady(pods []kapi.Pod) bool {
+	for _, p := range pods {
+		if isPodReady(p) {
+			return true
+		}
+	}
+	return false
 }
