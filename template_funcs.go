@@ -15,6 +15,8 @@ import (
 )
 
 var Funcs = template.FuncMap{
+	"allPodsReady":  allPodsReady,
+	"anyPodReady":   anyPodReady,
 	"closest":       arrayClosest,
 	"coalesce":      coalesce,
 	"combine":       combine,
@@ -29,8 +31,6 @@ var Funcs = template.FuncMap{
 	"hasField":      hasField,
 	"intersect":     intersect,
 	"isPodReady":    isPodReady,
-	"allPodsReady":  allPodsReady,
-	"anyPodReady":   anyPodReady,
 	"json":          marshalJson,
 	"pathJoin":      filepath.Join,
 	"keys":          keys,
@@ -39,6 +39,7 @@ var Funcs = template.FuncMap{
 	"mapContains":   mapContains,
 	"parseBool":     strconv.ParseBool,
 	"parseJson":     unmarshalJson,
+	"readyPods":     readyPods,
 	"replace":       strings.Replace,
 	"shell":         execShell,
 	"split":         strings.Split,
@@ -164,4 +165,14 @@ func anyPodReady(pods []kapi.Pod) bool {
 		}
 	}
 	return false
+}
+
+func readyPods(pods []kapi.Pod) []kapi.Pod {
+	var ready []kapi.Pod
+	for _, p := range pods {
+		if isPodReady(p) {
+			ready = append(ready, p)
+		}
+	}
+	return ready
 }
