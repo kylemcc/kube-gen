@@ -139,8 +139,13 @@ func execShell(cs string) *ShellResult {
 	return res
 }
 
-func isPodReady(pod kapi.Pod) bool {
-	return kapi.IsPodReady(&pod)
+func isPodReady(i interface{}) bool {
+	if p, ok := i.(kapi.Pod); ok {
+		return kapi.IsPodReady(&p)
+	} else if p, ok := i.(*kapi.Pod); ok {
+		return kapi.IsPodReady(p)
+	}
+	return false
 }
 
 func allPodsReady(pods []kapi.Pod) bool {
