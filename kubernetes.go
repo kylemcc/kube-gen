@@ -1,45 +1,43 @@
 package kubegen
 
 import (
-	kapi "k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/unversioned"
-	kcache "k8s.io/kubernetes/pkg/client/cache"
-	krest "k8s.io/kubernetes/pkg/client/restclient"
-	kclient "k8s.io/kubernetes/pkg/client/unversioned"
-	kframework "k8s.io/kubernetes/pkg/controller/framework"
-	kselector "k8s.io/kubernetes/pkg/fields"
+	kclient "k8s.io/client-go/kubernetes"
+	kapi "k8s.io/client-go/pkg/api/v1"
+	kselector "k8s.io/client-go/pkg/fields"
+	krest "k8s.io/client-go/rest"
+	kcache "k8s.io/client-go/tools/cache"
 )
 
 // Initializes a new Kubernetes API Client
 // TODO: Authentication
 // TODO: look inte pkg/client/clientcmd for loading config
 // TODO: standard environment variables?
-func newKubeClient(c Config) (*kclient.Client, error) {
+func newKubeClient(c Config) (*kclient.Clientset, error) {
 	config := &krest.Config{
-		Host:          c.Host,
-		ContentConfig: krest.ContentConfig{GroupVersion: &unversioned.GroupVersion{Version: "v1"}},
+		Host: c.Host,
+		//ContentConfig: krest.ContentConfig{GroupVersion: &unversioned.GroupVersion{Version: "v1"}},
 	}
-	return kclient.New(config)
+	return kclient.NewForConfig(config)
 }
 
-func podsListWatch(client *kclient.Client) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client, "pods", kapi.NamespaceAll, kselector.Everything())
+func podsListWatch(client *kclient.Clientset) *kcache.ListWatch {
+	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "pods", kapi.NamespaceAll, kselector.Everything())
 }
 
-func svcListWatch(client *kclient.Client) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client, "services", kapi.NamespaceAll, kselector.Everything())
+func svcListWatch(client *kclient.Clientset) *kcache.ListWatch {
+	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "services", kapi.NamespaceAll, kselector.Everything())
 }
 
-func epListWatch(client *kclient.Client) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client, "endpoints", kapi.NamespaceAll, kselector.Everything())
+func epListWatch(client *kclient.Clientset) *kcache.ListWatch {
+	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "endpoints", kapi.NamespaceAll, kselector.Everything())
 }
 
-func watchPods(client *kclient.Client, ch chan<- *kapi.Pod, stopCh chan struct{}) kcache.Store {
-	store, controller := kframework.NewInformer(
+func watchPods(client *kclient.Clientset, ch chan<- *kapi.Pod, stopCh chan struct{}) kcache.Store {
+	store, controller := kcache.NewInformer(
 		podsListWatch(client),
 		&kapi.Pod{},
 		0,
-		kframework.ResourceEventHandlerFuncs{
+		kcache.ResourceEventHandlerFuncs{
 			AddFunc: func(v interface{}) {
 				if p, ok := v.(*kapi.Pod); ok {
 					ch <- p
@@ -60,12 +58,12 @@ func watchPods(client *kclient.Client, ch chan<- *kapi.Pod, stopCh chan struct{}
 	return store
 }
 
-func watchServices(client *kclient.Client, ch chan<- *kapi.Service, stopCh chan struct{}) kcache.Store {
-	store, controller := kframework.NewInformer(
+func watchServices(client *kclient.Clientset, ch chan<- *kapi.Service, stopCh chan struct{}) kcache.Store {
+	store, controller := kcache.NewInformer(
 		svcListWatch(client),
 		&kapi.Service{},
 		0,
-		kframework.ResourceEventHandlerFuncs{
+		kcache.ResourceEventHandlerFuncs{
 			AddFunc: func(v interface{}) {
 				if s, ok := v.(*kapi.Service); ok {
 					ch <- s
@@ -86,12 +84,12 @@ func watchServices(client *kclient.Client, ch chan<- *kapi.Service, stopCh chan 
 	return store
 }
 
-func watchEndpoints(client *kclient.Client, ch chan<- *kapi.Endpoints, stopCh chan struct{}) kcache.Store {
-	store, controller := kframework.NewInformer(
+func watchEndpoints(client *kclient.Clientset, ch chan<- *kapi.Endpoints, stopCh chan struct{}) kcache.Store {
+	store, controller := kcache.NewInformer(
 		epListWatch(client),
 		&kapi.Endpoints{},
 		0,
-		kframework.ResourceEventHandlerFuncs{
+		kcache.ResourceEventHandlerFuncs{
 			AddFunc: func(v interface{}) {
 				if e, ok := v.(*kapi.Endpoints); ok {
 					ch <- e

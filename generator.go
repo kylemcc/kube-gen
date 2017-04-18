@@ -12,8 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	kapi "k8s.io/kubernetes/pkg/api"
-	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kclient "k8s.io/client-go/kubernetes"
+	kapi "k8s.io/client-go/pkg/api/v1"
 )
 
 var (
@@ -47,7 +48,7 @@ type Generator interface {
 type generator struct {
 	sync.WaitGroup
 	Config Config
-	Client *kclient.Client
+	Client *kclient.Clientset
 
 	loadPods bool
 	loadSvcs bool
@@ -90,21 +91,21 @@ func (g *generator) execute() error {
 	log.Println("refreshing state...")
 	start := time.Now()
 	if g.loadPods {
-		if p, err := g.Client.Pods(kapi.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		if p, err := g.Client.Pods(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading pods: %v", err)
 		} else {
 			ctx.Pods = p.Items
 		}
 	}
 	if g.loadSvcs {
-		if p, err := g.Client.Services(kapi.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		if p, err := g.Client.Services(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading services: %v", err)
 		} else {
 			ctx.Services = p.Items
 		}
 	}
 	if g.loadEps {
-		if p, err := g.Client.Endpoints(kapi.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		if p, err := g.Client.Endpoints(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading endpoints: %v", err)
 		} else {
 			ctx.Endpoints = p.Items

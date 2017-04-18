@@ -11,7 +11,8 @@ import (
 	"strings"
 	"text/template"
 
-	kapi "k8s.io/kubernetes/pkg/api"
+	//kapi_unversioned "k8s.io/client-go/pkg/api"
+	kapi "k8s.io/client-go/pkg/api"
 )
 
 var Funcs = template.FuncMap{

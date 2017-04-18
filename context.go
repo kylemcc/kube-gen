@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	kapi "k8s.io/kubernetes/pkg/api"
+	kapi "k8s.io/client-go/pkg/api/v1"
 )
 
 var (
