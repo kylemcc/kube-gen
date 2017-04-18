@@ -40,6 +40,7 @@ var Funcs = template.FuncMap{
 	"mapContains":   mapContains,
 	"parseBool":     strconv.ParseBool,
 	"parseJson":     unmarshalJson,
+	"parseJsonSafe": unmarshalJsonSafe,
 	"readyPods":     readyPods,
 	"replace":       strings.Replace,
 	"shell":         execShell,
@@ -116,6 +117,16 @@ func unmarshalJson(input string) (interface{}, error) {
 		return nil, err
 	}
 	return v, nil
+}
+
+// unmarshalJsonSafe is the same as unmarshalJson, but returns nil if
+// json.Unmarshal returns an error
+func unmarshalJsonSafe(input string) interface{} {
+	var v interface{}
+	if err := json.Unmarshal([]byte(input), &v); err != nil {
+		return nil
+	}
+	return v
 }
 
 func isValidJson(input string) bool {
