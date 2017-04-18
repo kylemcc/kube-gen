@@ -14,8 +14,8 @@ import (
 // TODO: standard environment variables?
 func newKubeClient(c Config) (*kclient.Clientset, error) {
 	config := &krest.Config{
-		Host: c.Host,
-		//ContentConfig: krest.ContentConfig{GroupVersion: &unversioned.GroupVersion{Version: "v1"}},
+		Host:          c.Host,
+		ContentConfig: krest.ContentConfig{GroupVersion: &kapi.SchemeGroupVersion},
 	}
 	return kclient.NewForConfig(config)
 }
