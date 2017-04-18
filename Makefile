@@ -15,7 +15,7 @@ kube-gen: need-fmt vet test
 
 build: clean kube-gen
 	echo "Building version $(VERSION) / revision $(REVISION)"
-	gox -os='!windows !plan9' -output="build/{{.OS}}-{{.Arch}}/kube-gen" -ldflags "$(LDFLAGS)" ./...
+	gox -os='!windows !plan9' -output="build/{{.OS}}-{{.Arch}}/kube-gen" -ldflags "$(LDFLAGS)" $(PACKAGES)
 
 dist: build
 	mkdir dist; \
