@@ -31,6 +31,7 @@ var Funcs = template.FuncMap{
 	"hasField":      hasField,
 	"intersect":     intersect,
 	"isPodReady":    isPodReady,
+	"isValidJson":   isValidJson,
 	"json":          marshalJson,
 	"pathJoin":      filepath.Join,
 	"keys":          keys,
@@ -115,6 +116,11 @@ func unmarshalJson(input string) (interface{}, error) {
 		return nil, err
 	}
 	return v, nil
+}
+
+func isValidJson(input string) bool {
+	_, err := unmarshalJson(input)
+	return err == nil
 }
 
 type ShellResult struct {
