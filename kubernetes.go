@@ -2,6 +2,7 @@ package kubegen
 
 import (
 	kclient "k8s.io/client-go/kubernetes"
+	kapi_unversioned "k8s.io/client-go/pkg/api"
 	kapi "k8s.io/client-go/pkg/api/v1"
 	kselector "k8s.io/client-go/pkg/fields"
 	krest "k8s.io/client-go/rest"
@@ -108,4 +109,12 @@ func watchEndpoints(client *kclient.Clientset, ch chan<- *kapi.Endpoints, stopCh
 		})
 	go controller.Run(stopCh)
 	return store
+}
+
+// TODO: this doen't feel right, but it appears to work
+// converts a v1.Pod to an api.Pod and checks its readiness
+func isV1PodReady(p *kapi.Pod) bool {
+	var cp kapi_unversioned.Pod
+	kapi_unversioned.Scheme.Convert(p, &cp, nil)
+	return kapi_unversioned.IsPodReady(&cp)
 }
