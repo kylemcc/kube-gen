@@ -11,7 +11,6 @@ import (
 	"strings"
 	"text/template"
 
-	//kapi_unversioned "k8s.io/client-go/pkg/api"
 	kapi "k8s.io/client-go/pkg/api/v1"
 )
 
