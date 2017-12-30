@@ -27,6 +27,7 @@ var (
 
 type Config struct {
 	Host           string
+	Kubeconfig     string
 	TemplatePath   string
 	TemplateString string
 	Output         string

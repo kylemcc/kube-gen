@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ type stringSlice []string
 var (
 	// flags
 	host         string
+	kubeconfig   string
 	types        stringSlice
 	watch        bool
 	preCmd       string
@@ -69,7 +71,12 @@ Arguments:
 }
 
 func parseFlags() {
-	flags.StringVar(&host, "host", "http://localhost:8001", "")
+	flags.StringVar(&host, "host", "", "If not set will use kubeconfig. If using proxy - set it to http://localhost:8001")
+	if home := homeDir(); home != "" {
+		flags.StringVar(&kubeconfig, "kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		flags.StringVar(&kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")
+	}
 	flags.Var(&types, "type", "types of resources to pull [pods, services, endpoints] - May be specified multiple times. "+
 		"If not specified, all types will be returned")
 	flags.BoolVar(&showVersion, "version", false, "display version information")
@@ -85,6 +92,13 @@ func parseFlags() {
 
 	flags.Usage = usage
 	flags.Parse(os.Args[1:])
+}
+
+func homeDir() string {
+	if h := os.Getenv("HOME"); h != "" {
+		return h
+	}
+	return os.Getenv("USERPROFILE") // windows
 }
 
 func printVersion() {
@@ -156,6 +170,7 @@ func main() {
 
 	conf := kubegen.Config{
 		Host:           host,
+		Kubeconfig:     kubeconfig,
 		TemplateString: tmplStr,
 		TemplatePath:   flags.Arg(0),
 		Output:         flags.Arg(1),
