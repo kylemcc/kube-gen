@@ -39,13 +39,7 @@ var _ = math.Inf
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
-// A compilation error at this line likely means your copy of the
-// proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
-
-func init() {
-	proto.RegisterFile("k8s.io/kubernetes/vendor/k8s.io/apimachinery/pkg/runtime/schema/generated.proto", fileDescriptorGenerated)
-}
+const _ = proto.GoGoProtoPackageIsVersion1
 
 var fileDescriptorGenerated = []byte{
 	// 199 bytes of a gzipped FileDescriptorProto
