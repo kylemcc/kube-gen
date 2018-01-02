@@ -1,6 +1,6 @@
 # kube-gen
 
-![latest 0.2.0](https://img.shields.io/badge/latest-0.2.0-green.svg?style=flat)
+![latest 0.3.0](https://img.shields.io/badge/latest-0.3.0-green.svg?style=flat)
 [![license](http://img.shields.io/badge/license-BSD-red.svg?style=flat)](https://raw.githubusercontent.com/kylemcc/kube-gen/master/LICENSE)
 [![Build Status](https://travis-ci.org/kylemcc/kube-gen.svg?branch=master)](https://travis-ci.org/kylemcc/kube-gen)
 
@@ -32,27 +32,29 @@ Render templates using Kubernetes metadata and events
 
 Options:
   -host string
-    	 (default "http://localhost:8001")
+        If not set will use kubeconfig. If using proxy - set it to http://localhost:8001
   -interval int
 
+  -kubeconfig string
+        (optional) absolute path to the kubeconfig file (default "/Users/kyle/.kube/config")
   -log-cmd
-    	log the output of the pre/post commands (default true)
+        log the output of the pre/post commands (default true)
   -overwrite
-    	overwrite the output file if it exists (default true)
+        overwrite the output file if it exists (default true)
   -post-cmd string
-    	command to run after template generation in complete
+        command to run after template generation in complete
   -pre-cmd string
-    	command to run before template generation
+        command to run before template generation
   -quiet
-    	when set to true, nothing is logged
+        when set to true, nothing is logged
   -type value
-    	types of resources to pull [pods, services, endpoints] - May be specified multiple times. If not specified, all types will be returned
+        types of resources to pull [pods, services, endpoints] - May be specified multiple times. If not specified, all types will be returned
   -version
-    	display version information
+        display version information
   -wait string
-    	<minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires.E.g.: 500ms:5s
+        <minimum>[:<maximum>] - the minimum and optional maximum time to wait after an event fires.E.g.: 500ms:5s
   -watch
-    	watch for new events
+        watch for new events
 
 Arguments:
   template: path or URL of the template file to render, or - to read from STDIN
@@ -63,7 +65,7 @@ Arguments:
 ```
 
 #### Authentication / Connecting to the Kubernetes API
-Currently, `kube-gen` does not support authentication, or reading the `~/.kube/config` file. These features are forthcoming. In the mean time, the `-host` parameter should either be set to the value of `kube-apiserver`'s `--insecure-bind-address` / `--insecure-port` values. Alternatively, as reflected by the default value, `kube-gen` can be run alongside `kubectl proxy` - which, by default, listens on `127.0.0.1:8001`.
+By default, `kube-gen` will look for a kubeconfig file at `$HOME/.kube/config`. A different kubeconfig file may be specified by using the `-kubeconfig` flag. Alternatively, `kube-gen` provides a `-host` flag that, if set, will supersede the `-kubeconfig`. The `-host` flag is best paired with `kubectl proxy`, which listens on 127.0.0.1:8001 by default. The `-host` flag may also be set to the value of `kube-apiserver`'s `--insecure-bind-address` / `--insecure-port`.
 
 #### Watching for changes
 
