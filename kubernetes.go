@@ -7,16 +7,24 @@ import (
 	kselector "k8s.io/client-go/pkg/fields"
 	krest "k8s.io/client-go/rest"
 	kcache "k8s.io/client-go/tools/cache"
+	kcmd "k8s.io/client-go/tools/clientcmd"
 )
 
 // Initializes a new Kubernetes API Client
-// TODO: Authentication
-// TODO: look inte pkg/client/clientcmd for loading config
-// TODO: standard environment variables?
 func newKubeClient(c Config) (*kclient.Clientset, error) {
-	config := &krest.Config{
-		Host:          c.Host,
-		ContentConfig: krest.ContentConfig{GroupVersion: &kapi.SchemeGroupVersion},
+	var config *krest.Config
+	var err error
+	if c.Host == "" {
+		// use the current context in kubeconfig
+		config, err = kcmd.BuildConfigFromFlags("", c.Kubeconfig)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		config = &krest.Config{
+			Host:          c.Host,
+			ContentConfig: krest.ContentConfig{GroupVersion: &kapi.SchemeGroupVersion},
+		}
 	}
 	return kclient.NewForConfig(config)
 }
