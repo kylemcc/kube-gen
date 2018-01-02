@@ -2,6 +2,7 @@
 
 ![latest 0.2.0](https://img.shields.io/badge/latest-0.2.0-green.svg?style=flat)
 [![license](http://img.shields.io/badge/license-BSD-red.svg?style=flat)](https://raw.githubusercontent.com/kylemcc/kube-gen/master/LICENSE)
+[![Build Status](https://travis-ci.org/kylemcc/kube-gen.svg?branch=master)](https://travis-ci.org/kylemcc/kube-gen)
 
 
 `kube-gen` is a template rendering tool that generates files based on Kubernetes events and metadata. It is based on and inspired by Jason Wilder's excellent [docker-gen](https://github.com/jwilder/docker-gen).
