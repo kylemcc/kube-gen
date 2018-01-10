@@ -239,6 +239,7 @@ func (g *generator) writeFile(content []byte) error {
 	if _, err := tmp.Write(content); err != nil {
 		return fmt.Errorf("error writing temp file: %v", err)
 	}
+	tmp.Close()
 
 	var (
 		oldContent []byte
@@ -247,11 +248,8 @@ func (g *generator) writeFile(content []byte) error {
 	if fi, err := os.Stat(g.Config.Output); err == nil {
 		exists = true
 		// set permissions and ownership on new file
-		if err := tmp.Chmod(fi.Mode()); err != nil {
-			return fmt.Errorf("error setting file permissions: %v", err)
-		}
-		if err := tmp.Chown(int(fi.Sys().(*syscall.Stat_t).Uid), int(fi.Sys().(*syscall.Stat_t).Gid)); err != nil {
-			return fmt.Errorf("error changing file owner: %v", err)
+		if err := setFileModeAndOwnership(tmp, fi); err != nil {
+			return err
 		}
 		if oldContent, err = ioutil.ReadFile(g.Config.Output); err != nil {
 			return fmt.Errorf("error comparing old version: %v", err)
@@ -265,7 +263,7 @@ func (g *generator) writeFile(content []byte) error {
 			return fmt.Errorf("output file already exists")
 		}
 
-		if err = os.Rename(tmp.Name(), g.Config.Output); err != nil {
+		if err = moveFile(tmp.Name(), g.Config.Output); err != nil {
 			return fmt.Errorf("error creating output file: %v", err)
 		}
 		log.Printf("output file [%s] created\n", g.Config.Output)
@@ -280,7 +278,7 @@ func (g *generator) runCmd(cs string) error {
 	}
 
 	log.Printf("running command [%v]\n", cs)
-	cmd := exec.Command("/bin/sh", "-c", cs)
+	cmd := exec.Command(SHELL_EXE, SHELL_ARG, cs)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error running command: %v", err)
