@@ -72,7 +72,9 @@ Arguments:
 
 func parseFlags() {
 	flags.StringVar(&host, "host", "", "If not set will use kubeconfig. If using proxy - set it to http://localhost:8001")
-	if home := homeDir(); home != "" {
+	if kubeconfigEnv := os.Getenv("KUBECONFIG"); kubeconfigEnv != "" {
+		flags.StringVar(&kubeconfig, "kubeconfig", kubeconfigEnv, "(optional) environment variable for the kubeconfig file")
+	} else if home := homeDir(); home != "" {
 		flags.StringVar(&kubeconfig, "kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
 		flags.StringVar(&kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")

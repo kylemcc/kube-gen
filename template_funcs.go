@@ -145,7 +145,7 @@ func execShell(cs string) *ShellResult {
 		stdout bytes.Buffer
 		stderr bytes.Buffer
 	)
-	cmd := exec.Command("/bin/sh", "-c", cs)
+	cmd := exec.Command(SHELL_EXE, SHELL_ARG, cs)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
