@@ -239,7 +239,6 @@ func (g *generator) writeFile(content []byte) error {
 	if _, err := tmp.Write(content); err != nil {
 		return fmt.Errorf("error writing temp file: %v", err)
 	}
-	tmp.Close()
 
 	var (
 		oldContent []byte
@@ -263,7 +262,7 @@ func (g *generator) writeFile(content []byte) error {
 			return fmt.Errorf("output file already exists")
 		}
 
-		if err = moveFile(tmp.Name(), g.Config.Output); err != nil {
+		if err = moveFile(tmp, g.Config.Output); err != nil {
 			return fmt.Errorf("error creating output file: %v", err)
 		}
 		log.Printf("output file [%s] created\n", g.Config.Output)

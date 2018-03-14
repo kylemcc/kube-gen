@@ -15,8 +15,9 @@ func setFileModeAndOwnership(f *os.File, fi os.FileInfo) error {
 	return nil
 }
 
-func moveFile(src string, dest string) error {
-	moveCmd := "move " + src + " " + dest
+func moveFile(src *os.File, dest string) error {
+	src.Close()
+	moveCmd := "move " + src.Name() + " " + dest
 	cmd := exec.Command(SHELL_EXE, SHELL_ARG, moveCmd)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error creating output file: %v", err)
