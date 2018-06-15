@@ -21,8 +21,8 @@ func setFileModeAndOwnership(f *os.File, fi os.FileInfo) error {
 	return nil
 }
 
-func moveFile(src string, dest string) error {
-	if err := os.Rename(src, dest); err != nil {
+func moveFile(src *os.File, dest string) error {
+	if err := os.Rename(src.Name(), dest); err != nil {
 		return fmt.Errorf("error creating output file: %v", err)
 	}
 	return nil
