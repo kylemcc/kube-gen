@@ -29,8 +29,12 @@ func newKubeClient(c Config) (*kclient.Clientset, error) {
 	return kclient.NewForConfig(config)
 }
 
-func podsListWatch(client *kclient.Clientset) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "pods", kapi.NamespaceAll, kselector.Everything())
+func podsListWatch(client *kclient.Clientset, node string) *kcache.ListWatch {
+	var selector kselector.Selector
+	if selector = kselector.Everything(); node != "" {
+		selector = kselector.OneTermEqualSelector("spec.nodeName", node)
+	}
+	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "pods", kapi.NamespaceAll, selector)
 }
 
 func svcListWatch(client *kclient.Clientset) *kcache.ListWatch {
@@ -41,9 +45,9 @@ func epListWatch(client *kclient.Clientset) *kcache.ListWatch {
 	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "endpoints", kapi.NamespaceAll, kselector.Everything())
 }
 
-func watchPods(client *kclient.Clientset, ch chan<- *kapi.Pod, stopCh chan struct{}) kcache.Store {
+func watchPods(client *kclient.Clientset, node string, ch chan<- *kapi.Pod, stopCh chan struct{}) kcache.Store {
 	store, controller := kcache.NewInformer(
-		podsListWatch(client),
+		podsListWatch(client, node),
 		&kapi.Pod{},
 		0,
 		kcache.ResourceEventHandlerFuncs{
