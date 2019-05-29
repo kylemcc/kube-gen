@@ -15,7 +15,7 @@ import (
 )
 
 var Funcs = template.FuncMap{
-	"add":		 add,
+	"add":           add,
 	"allPodsReady":  allPodsReady,
 	"anyPodReady":   anyPodReady,
 	"closest":       arrayClosest,
@@ -63,11 +63,11 @@ var Funcs = template.FuncMap{
 }
 
 func pathJoinSlice(input []string) string {
-  return filepath.Join(input...)
+	return filepath.Join(input...)
 }
 
 func add(input, delta int) int {
-  return input + delta
+	return input + delta
 }
 
 // returns a slice of the input array/slice containing elements between begin (inclusive) and end (exclusive) indices
