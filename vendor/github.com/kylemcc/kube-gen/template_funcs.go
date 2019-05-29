@@ -44,7 +44,6 @@ var Funcs = template.FuncMap{
 	"readyPods":     readyPods,
 	"replace":       strings.Replace,
 	"shell":         execShell,
-	"slice":         slice,
 	"split":         strings.Split,
 	"splitN":        strings.SplitN,
 	"strContains":   strings.Contains,
@@ -58,21 +57,6 @@ var Funcs = template.FuncMap{
 	"whereNotExist": whereNotExist,
 	"whereAny":      whereAny,
 	"whereAll":      whereAll,
-}
-
-// returns a slice of the input array/slice containing elements between begin (inclusive) and end (exclusive) indices
-func slice(input interface{}, begin, end int) (interface{}, error) {
-	if input == nil {
-		return input, nil
-	}
-	arr := reflect.ValueOf(input)
-	if arr.Kind() != reflect.Slice && arr.Kind() != reflect.Array {
-		return nil, fmt.Errorf("slice can only be called with slice types. received: %v", arr.Kind())
-	}
-	if arr.Len() == 0 {
-		return input, nil
-	}
-	return arr.Slice(begin, end).Interface(), nil
 }
 
 // combine multiple slices into a single slice
@@ -161,7 +145,7 @@ func execShell(cs string) *ShellResult {
 		stdout bytes.Buffer
 		stderr bytes.Buffer
 	)
-	cmd := exec.Command(SHELL_EXE, SHELL_ARG, cs)
+	cmd := exec.Command("/bin/sh", "-c", cs)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
