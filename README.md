@@ -1,6 +1,6 @@
 # kube-gen
 
-![latest 0.3.0](https://img.shields.io/badge/latest-0.3.0-green.svg?style=flat)
+![latest 0.4.0](https://img.shields.io/badge/latest-0.4.0-green.svg?style=flat)
 [![license](http://img.shields.io/badge/license-BSD-red.svg?style=flat)](https://raw.githubusercontent.com/kylemcc/kube-gen/master/LICENSE)
 [![Build Status](https://travis-ci.org/kylemcc/kube-gen.svg?branch=master)](https://travis-ci.org/kylemcc/kube-gen)
 
