@@ -25,8 +25,7 @@ dist: build
 	cd dist && shasum -a 256 * > sha256sums.txt
 
 vet:
-	go vet *.go
-	go vet cmd/kube-gen/*.go
+	go vet $(PACKAGES)
 
 test:
 	go test -cover $(PACKAGES)
