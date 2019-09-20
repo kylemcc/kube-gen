@@ -1,0 +1,36 @@
+on:
+  push:
+    tags:
+      - '*'
+name: Build Docker Image
+jobs:
+  build_and_publish_binary:
+    name: Build and Publish Binary
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go Env
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+    - name: checkout code
+      uses: actions/checkout@master
+    - name: add go bin to path
+      run: |
+        echo ::add-path::~/go/bin
+        echo ::add-path::$GOROOT/bin
+    - name: install gox
+      run: go get github.com/mitchellh/gox
+    - name: install ghr
+      run: go get -u github.com/tcnksm/ghr
+    - name: compile
+      run: make dist
+    - name: publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: make publish
+    - name: Send Slack Notification
+      uses: kylemcc/actions/slack-webhook@master
+      if: always()
+      env:
+        SLACK_MESSAGE: '$GITHUB_REPOSITORY: $GITHUB_WORKFLOW ${{ job.status }}'
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
