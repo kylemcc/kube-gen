@@ -40,6 +40,7 @@ type Config struct {
 	MinWait        time.Duration
 	MaxWait        time.Duration
 	ResourceTypes  []string
+	Node           string
 }
 
 type Generator interface {
@@ -92,7 +93,12 @@ func (g *generator) execute() error {
 	log.Println("refreshing state...")
 	start := time.Now()
 	if g.loadPods {
-		if p, err := g.Client.Pods(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		listOptions := kapi.ListOptions{}
+		if g.Config.Node != "" {
+			listOptions.FieldSelector = fmt.Sprintf("spec.nodeName=%s", g.Config.Node)
+			log.Println("loading pods in node", g.Config.Node)
+		}
+		if p, err := g.Client.Pods(metav1.NamespaceAll).List(listOptions); err != nil {
 			return fmt.Errorf("error loading pods: %v", err)
 		} else {
 			ctx.Pods = p.Items
@@ -158,7 +164,7 @@ func (g *generator) watchEvents() error {
 	if g.loadPods {
 		nWatchers++
 		podCh = make(chan *kapi.Pod)
-		watchPods(g.Client, podCh, stopCh)
+		watchPods(g.Client, g.Config.Node, podCh, stopCh)
 	}
 	if g.loadSvcs {
 		nWatchers++
