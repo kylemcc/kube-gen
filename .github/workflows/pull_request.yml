@@ -1,0 +1,28 @@
+on: pull_request
+name: Check PR
+jobs:
+  check_pr:
+    name: Check PR
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go Env
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+    - name: checkout code
+      uses: actions/checkout@master
+    - name: fetch deps
+      run: go get
+    - name: Go Vet
+      run: go vet ./...
+    - name: Go Format Check
+      run: |
+          if [[ ! -z "$(gofmt -s -l . | grep -v vendor | tee /dev/stderr)" ]]; then
+            exit 1;
+          fi
+    - name: Run Tests
+      run: go test ./...
+    - name: Build Image
+      uses: actions/docker/cli@76ff57a
+      with:
+        args: build -t tmp .

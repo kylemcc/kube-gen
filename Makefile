@@ -1,8 +1,10 @@
+SHELL=/bin/bash
 PACKAGES:=$(shell go list ./... | grep -v vendor)
 BUILD_TIME:=`date -u '+%Y-%m-%dT%H:%M:%S'`
 REVISION:=`git rev-parse HEAD`
 LDFLAGS=-X main.version=$(VERSION) -X main.buildTime=$(BUILD_TIME) -X main.revision=$(REVISION)
 VERSION?=$(REVISION)
+GH_USER?=kylemcc
 
 all: kube-gen
 
@@ -23,6 +25,9 @@ dist: build
 		tar -czvf dist/kube-gen-$${build}-$(VERSION).tar.gz -C build/$${build} kube-gen; \
 	done; \
 	cd dist && shasum -a 256 * > sha256sums.txt
+
+publish: dist
+	ghr -u $(GH_USER) $(REVISION) dist/
 
 vet:
 	go vet $(PACKAGES)
