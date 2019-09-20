@@ -23,7 +23,7 @@ Images are available on [Dockerhub](https://hub.docker.com/r/kylemcc/kube-gen):
 $ docker run kylemcc/kube-gen ...
 ```
 
-Or [Github Package Registry](https://github.com/kylemcc/kube-gen/packages/2482://github.com/kylemcc/kube-gen/packages/24823):
+Or [Github Package Registry](https://github.com/kylemcc/kube-gen/packages/24823):
 
 ```sh
 $ docker run docker.pkg.github.com/kylemcc/kube-gen/kube-gen ...
