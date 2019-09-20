@@ -2,7 +2,7 @@ on:
   push:
     tags:
       - '*'
-name: Build Docker Image
+name: Build and Publish Binary
 jobs:
   build_and_publish_binary:
     name: Build and Publish Binary
