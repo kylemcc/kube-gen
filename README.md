@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/kylemcc/kube-gen.svg?branch=master)](https://travis-ci.org/kylemcc/kube-gen)
 
 
-`kube-gen` is a template rendering tool that generates files based on Kubernetes events and metadata. It is based on and inspired by Jason Wilder's excellent [docker-gen](https://github.com/jwilder/docker-gen).
+`kube-gen` is a template rendering tool that generates files and executes commands based on Kubernetes events and metadata.
 
 ## Installation
 
@@ -17,7 +17,17 @@ See the [Releases](https://github.com/kylemcc/kube-gen/releases) page
 
 `kube-gen` can be run as a standalone container, or bundled in a container with other applications.
 
-TODO: create official images
+Images are available on [Dockerhub](https://hub.docker.com/r/kylemcc/kube-gen):
+
+```sh
+$ docker run kylemcc/kube-gen ...
+```
+
+Or [Github Package Registry](https://github.com/kylemcc/kube-gen/packages/2482://github.com/kylemcc/kube-gen/packages/24823):
+
+```sh
+$ docker run docker.pkg.github.com/kylemcc/kube-gen/kube-gen ...
+```
 
 
 ## Usage
