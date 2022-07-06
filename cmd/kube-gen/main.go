@@ -32,6 +32,7 @@ var (
 	interval     int
 	quiet        bool
 	showVersion  bool
+	inCluster    bool
 
 	// build info
 	version   string
@@ -91,7 +92,7 @@ func parseFlags() {
 		"E.g.: 500ms:5s")
 	flags.IntVar(&interval, "interval", 0, "")
 	flags.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
-
+	flags.BoolVar(&inCluster, "in-cluster", false, "use inClusterConfig for k8s config")
 	flags.Usage = usage
 	flags.Parse(os.Args[1:])
 }
@@ -171,19 +172,20 @@ func main() {
 	}
 
 	conf := kubegen.Config{
-		Host:           host,
-		Kubeconfig:     kubeconfig,
-		TemplateString: tmplStr,
-		TemplatePath:   flags.Arg(0),
-		Output:         flags.Arg(1),
-		Overwrite:      overwrite,
-		Watch:          watch,
-		PreCmd:         preCmd,
-		PostCmd:        postCmd,
-		ResourceTypes:  types,
-		MinWait:        minWait,
-		MaxWait:        maxWait,
-		Interval:       interval,
+		Host:               host,
+		Kubeconfig:         kubeconfig,
+		TemplateString:     tmplStr,
+		TemplatePath:       flags.Arg(0),
+		Output:             flags.Arg(1),
+		Overwrite:          overwrite,
+		Watch:              watch,
+		PreCmd:             preCmd,
+		PostCmd:            postCmd,
+		ResourceTypes:      types,
+		MinWait:            minWait,
+		MaxWait:            maxWait,
+		Interval:           interval,
+		UseInClusterConfig: inCluster,
 	}
 
 	gen, err := kubegen.NewGenerator(conf)
