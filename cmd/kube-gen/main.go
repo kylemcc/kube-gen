@@ -92,6 +92,8 @@ func parseFlags() {
 	flags.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
 
 	flags.Usage = usage
+
+	//nolint:errcheck // ExitOnError is set, so no need to check the return value
 	flags.Parse(os.Args[1:])
 }
 

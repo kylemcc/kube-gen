@@ -255,7 +255,7 @@ func (g *generator) writeFile(content []byte) error {
 		}
 	}
 
-	if bytes.Compare(oldContent, content) != 0 {
+	if !bytes.Equal(oldContent, content) {
 		// Always overwrite in watch mode - doesn't make sense
 		// to watch and not overwrite
 		if exists && !g.Config.Watch && !g.Config.Overwrite {

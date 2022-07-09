@@ -117,7 +117,7 @@ func values(input interface{}) (interface{}, error) {
 
 	val := reflect.ValueOf(input)
 	if val.Kind() != reflect.Map {
-		return nil, fmt.Errorf("Cannot call values on a non-map value: %v", input)
+		return nil, fmt.Errorf("cannot call values on a non-map value: %v", input)
 	}
 
 	keys := val.MapKeys()
