@@ -8,9 +8,10 @@ BUILDDIR := dist
 GITSHA := $(shell git rev-parse --short HEAD)
 VERSION := $(shell cat version.txt)
 IMAGETAG := $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref --short HEAD)
+BUILD_TIME:=`date -u '+%Y-%m-%dT%H:%M:%S'`
 
 
-CTIMEVAR=-X $(PKG)/version.GitCommit=$(GITSHA) -X $(PKG)/version.Version=$(VERSION)
+CTIMEVAR=-X $(PKG)/version.GitCommit=$(GITSHA) -X $(PKG)/version.Version=$(VERSION) -X $(PKG)/version.BuildTime=$(BUILD_TIME)
 GO_LDFLAGS=-ldflags "-w $(CTIMEVAR)"
 GO_LDFLAGS_STATIC=-ldflags "-w $(CTIMEVAR) -extldflags -static"
 PACKAGES:=$(shell go list ./... | grep -v vendor)

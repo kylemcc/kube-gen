@@ -13,6 +13,7 @@ import (
 	"time"
 
 	kubegen "github.com/kylemcc/kube-gen"
+	"github.com/kylemcc/kube-gen/cmd/kube-gen/version"
 )
 
 type stringSlice []string
@@ -31,11 +32,6 @@ var (
 	interval     int
 	quiet        bool
 	showVersion  bool
-
-	// build info
-	version   string
-	buildTime string
-	revision  string
 
 	flags = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 )
@@ -109,7 +105,7 @@ func printVersion() {
 built at: %s
 revision: %s
 runtime:  %s
-`, version, buildTime, revision, runtime.Version())
+`, version.Version, version.BuildTime, version.GitCommit, runtime.Version())
 }
 
 func parseWait(w string) (min time.Duration, max time.Duration, err error) {
