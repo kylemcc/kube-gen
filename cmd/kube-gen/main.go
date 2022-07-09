@@ -1,4 +1,3 @@
-// kube-gen is a
 package main
 
 import (
