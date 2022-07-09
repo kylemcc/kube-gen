@@ -60,20 +60,27 @@ endef
 .PHONY: image
 image: ## Builds a Docker image
 	@echo "+ $@"
-	@docker build --rm --force-rm -t $(REGISTRY)/$(NAME) .
+	@docker build --rm --force-rm -t $(NAME) .
 
 .PHONY: tag-image
 tag-image: image
 	@echo "+ $@"
-	@docker tag $(REGISTRY)/$(NAME) $(REGISTRY)/$(NAME):$(GITSHA)
-	@docker tag $(REGISTRY)/$(NAME) $(REGISTRY)/$(NAME):$(IMAGETAG)
+	@for reg in $(REGISTRIES); do \
+		docker tag $(NAME) "$${reg}/$(NAME):latest"; \
+		docker tag $(NAME) "$${reg}/$(NAME):$(GITSHA)"; \
+		docker tag $(NAME) "$${reg}/$(NAME):$(IMAGETAG)"; \
+		docker tag $(NAME) "$${reg}/$(NAME):$(VERSION)"; \
+	done
 
 .PHONY: push-image
 push-image: tag-image
 	@echo "+ $@"
-	@docker push $(REGISTRY)/$(NAME)
-	@docker push $(REGISTRY)/$(NAME):$(GITSHA)
-	@docker push $(REGISTRY)/$(NAME):$(IMAGETAG)
+	@for reg in $(REGISTRIES); do \
+		docker push "$${reg}/$(NAME):latest"; \
+		docker push "$${reg}/$(NAME):$(GITSHA)"; \
+		docker push "$${reg}/$(NAME):$(IMAGETAG)"; \
+		docker push "$${reg}/$(NAME):$(VERSION)"; \
+	done
 
 .PHONY: calculate-checksums
 calculate-checksums: $(wildcard BUILDDIR)/* ## Calculates checksums for release artifacts
