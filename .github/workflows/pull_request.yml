@@ -1,28 +1,23 @@
-on: pull_request
-name: Check PR
+on: [push, pull_request]
+name: Check Commit
 jobs:
-  check_pr:
-    name: Check PR
+  check_commit:
+    name: Check Commit
     runs-on: ubuntu-latest
     steps:
-    - name: Setup Go Env
-      uses: actions/setup-go@v1
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v3
       with:
-        go-version: 1.13
-    - name: checkout code
-      uses: actions/checkout@master
-    - name: fetch deps
-      run: go get
-    - name: Go Vet
-      run: go vet ./...
-    - name: Go Format Check
+        go-version: '^1.18.0'
+    - name: install checkers
       run: |
-          if [[ ! -z "$(gofmt -s -l . | grep -v vendor | tee /dev/stderr)" ]]; then
-            exit 1;
-          fi
-    - name: Run Tests
-      run: go test ./...
-    - name: Build Image
-      uses: actions/docker/cli@76ff57a
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        go install github.com/securego/gosec/v2/cmd/gosec@latest
+    - name: check
+      run: make check
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
       with:
-        args: build -t tmp .
+        version: 1.46.2
+        args: -E misspell
+        only-new-issues: true

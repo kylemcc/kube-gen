@@ -11,38 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: '[Dockerhub] Docker Login'
-      uses: actions/docker/login@master
-      env:
-        DOCKER_PASSWORD: '${{ secrets.DOCKER_PASSWORD }}'
-        DOCKER_USERNAME: '${{ secrets.DOCKER_USERNAME }}'
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME}} --password-stdin
     - name: '[Github] Docker Login'
-      uses: actions/docker/login@master
-      env:
-        DOCKER_PASSWORD: '${{ secrets.GH_DOCKER_PASSWORD }}'
-        DOCKER_USERNAME: $GITHUB_ACTOR
-        DOCKER_REGISTRY_URL: docker.pkg.github.com
-    - name: Build kube-gen Image
-      uses: actions/docker/cli@master
-      with:
-        args: build -t app .
-    - name: '[Dockerhub] Tag Image'
-      uses: actions/docker/tag@master
-      with:
-        args: --env app kylemcc/kube-gen
-    - name: '[Github] Tag Image'
-      uses: actions/docker/tag@master
-      with:
-        args: --env app docker.pkg.github.com/kylemcc/kube-gen/kube-gen
-    - name: '[Dockerhub] Push Image'
-      uses: actions/docker/cli@76ff57a
-      with:
-        args: push kylemcc/kube-gen
-    - name: '[Github] Push Image'
-      uses: actions/docker/cli@76ff57a
-      with:
-        args: push docker.pkg.github.com/kylemcc/kube-gen/kube-gen
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u actions --password-stdin
+    - name: Build and push image
+      run: make push-image
     - name: Send Slack Notification
       uses: kylemcc/actions/slack-webhook@master
       if: always()
