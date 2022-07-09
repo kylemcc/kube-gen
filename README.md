@@ -2,7 +2,7 @@
 
 ![latest 0.4.0](https://img.shields.io/badge/latest-0.4.0-green.svg?style=flat)
 [![license](http://img.shields.io/badge/license-BSD-red.svg?style=flat)](https://raw.githubusercontent.com/kylemcc/kube-gen/master/LICENSE)
-[![Build Status](https://travis-ci.org/kylemcc/kube-gen.svg?branch=master)](https://travis-ci.org/kylemcc/kube-gen)
+[![Check Commit](https://github.com/kylemcc/kube-gen/actions/workflows/check.yml/badge.svg)](https://github.com/kylemcc/kube-gen/actions/workflows/check.yml)
 
 
 `kube-gen` is a template rendering tool that generates files and executes commands based on Kubernetes events and metadata.
@@ -23,10 +23,10 @@ Images are available on [Dockerhub](https://hub.docker.com/r/kylemcc/kube-gen):
 $ docker run kylemcc/kube-gen ...
 ```
 
-Or [Github Package Registry](https://github.com/kylemcc/kube-gen/packages/24823):
+Or [Github Package Registry](https://github.com/kylemcc/kube-gen/pkgs/container/kube-gen%2Fkube-gen):
 
 ```sh
-$ docker run docker.pkg.github.com/kylemcc/kube-gen/kube-gen ...
+$ docker run ghcr.io/kylemcc/kube-gen/kube-gen ...
 ```
 
 

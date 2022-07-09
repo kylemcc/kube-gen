@@ -15,8 +15,10 @@ RUN set -x \
 			gcc \
 			libc-dev \
 			libgcc \
-		&& cd /go/src/github.com/kylemcc/kube-gen/cmd/kube-gen \
-		&& CGO_ENABLED=0 go build -ldflags "-extldflags -static" \
+			make \
+			bash \
+		&& cd /go/src/github.com/kylemcc/kube-gen/ \
+		&& CGO_ENABLED=0 make static \
 		&& mv kube-gen /usr/bin/kube-gen \
 		&& apk del .build-deps \
 		&& rm -rf /go \

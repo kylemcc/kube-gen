@@ -1,4 +1,3 @@
-// kube-gen is a
 package main
 
 import (
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	kubegen "github.com/kylemcc/kube-gen"
+	"github.com/kylemcc/kube-gen/cmd/kube-gen/version"
 )
 
 type stringSlice []string
@@ -32,11 +32,6 @@ var (
 	interval     int
 	quiet        bool
 	showVersion  bool
-
-	// build info
-	version   string
-	buildTime string
-	revision  string
 
 	flags = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 )
@@ -93,6 +88,8 @@ func parseFlags() {
 	flags.BoolVar(&quiet, "quiet", false, "when set to true, nothing is logged")
 
 	flags.Usage = usage
+
+	//nolint:errcheck // ExitOnError is set, so no need to check the return value
 	flags.Parse(os.Args[1:])
 }
 
@@ -108,7 +105,7 @@ func printVersion() {
 built at: %s
 revision: %s
 runtime:  %s
-`, version, buildTime, revision, runtime.Version())
+`, version.Version, version.BuildTime, version.GitCommit, runtime.Version())
 }
 
 func parseWait(w string) (min time.Duration, max time.Duration, err error) {

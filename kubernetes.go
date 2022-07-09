@@ -30,15 +30,15 @@ func newKubeClient(c Config) (*kclient.Clientset, error) {
 }
 
 func podsListWatch(client *kclient.Clientset) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "pods", kapi.NamespaceAll, kselector.Everything())
+	return kcache.NewListWatchFromClient(client.CoreV1().RESTClient(), "pods", kapi.NamespaceAll, kselector.Everything())
 }
 
 func svcListWatch(client *kclient.Clientset) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "services", kapi.NamespaceAll, kselector.Everything())
+	return kcache.NewListWatchFromClient(client.CoreV1().RESTClient(), "services", kapi.NamespaceAll, kselector.Everything())
 }
 
 func epListWatch(client *kclient.Clientset) *kcache.ListWatch {
-	return kcache.NewListWatchFromClient(client.Core().RESTClient(), "endpoints", kapi.NamespaceAll, kselector.Everything())
+	return kcache.NewListWatchFromClient(client.CoreV1().RESTClient(), "endpoints", kapi.NamespaceAll, kselector.Everything())
 }
 
 func watchPods(client *kclient.Clientset, ch chan<- *kapi.Pod, stopCh chan struct{}) kcache.Store {
@@ -123,6 +123,6 @@ func watchEndpoints(client *kclient.Clientset, ch chan<- *kapi.Endpoints, stopCh
 // converts a v1.Pod to an api.Pod and checks its readiness
 func isV1PodReady(p *kapi.Pod) bool {
 	var cp kapi_unversioned.Pod
-	kapi_unversioned.Scheme.Convert(p, &cp, nil)
-	return kapi_unversioned.IsPodReady(&cp)
+	err := kapi_unversioned.Scheme.Convert(p, &cp, nil)
+	return err == nil && kapi_unversioned.IsPodReady(&cp)
 }

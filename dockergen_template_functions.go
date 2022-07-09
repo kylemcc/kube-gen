@@ -97,7 +97,7 @@ func keys(input interface{}) (interface{}, error) {
 
 	val := reflect.ValueOf(input)
 	if val.Kind() != reflect.Map {
-		return nil, fmt.Errorf("Cannot call keys on a non-map value: %v", input)
+		return nil, fmt.Errorf("cannot call keys on a non-map value: %v", input)
 	}
 
 	vk := val.MapKeys()
@@ -295,7 +295,7 @@ func getArrayValues(funcName string, entries interface{}) (*reflect.Value, error
 	case reflect.Array, reflect.Slice:
 		break
 	default:
-		return nil, fmt.Errorf("Must pass an array or slice to '%v'; received %v; kind %v", funcName, entries, kind)
+		return nil, fmt.Errorf("must pass an array or slice to '%v'; received %v; kind %v", funcName, entries, kind)
 	}
 	return &entriesVal, nil
 }
