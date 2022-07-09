@@ -115,6 +115,13 @@ test: ## Runs `go test` and makes sure the tests pass
 	@echo "+ $@"
 	@$(GO) test -v -tags "$(BUILDTAGS) cgo" $(shell $(GO) list ./... | grep -v vendor)
 
+.PHONY: golangci-lint
+golangci-lint:
+	@echo "+ $@"
+	@if [[ ! -z "$$(golangci-lint run --color=always --out-format=colored-line-number -E misspell | tee /dev/stderr)" ]]; then \
+		exit 1; \
+	fi
+
 .PHONY: check
 check: test fmt staticcheck vet gosec ## Runs test, fmt, staticcheck, vet, and gosec
 
