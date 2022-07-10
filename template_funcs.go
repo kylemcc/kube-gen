@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	kapi "k8s.io/client-go/pkg/api/v1"
+	kapi "k8s.io/api/core/v1"
 )
 
 var Funcs = template.FuncMap{
@@ -185,9 +185,9 @@ func execShell(cs string) *ShellResult {
 
 func isPodReady(i interface{}) bool {
 	if p, ok := i.(kapi.Pod); ok {
-		return isV1PodReady(&p)
+		return IsPodReady(&p)
 	} else if p, ok := i.(*kapi.Pod); ok {
-		return isV1PodReady(p)
+		return IsPodReady(p)
 	}
 	return false
 }
