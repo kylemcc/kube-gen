@@ -1,10 +1,9 @@
 package kubegen
 
 import (
+	kapi "k8s.io/api/core/v1"
+	kselector "k8s.io/apimachinery/pkg/fields"
 	kclient "k8s.io/client-go/kubernetes"
-	kapi_unversioned "k8s.io/client-go/pkg/api"
-	kapi "k8s.io/client-go/pkg/api/v1"
-	kselector "k8s.io/client-go/pkg/fields"
 	krest "k8s.io/client-go/rest"
 	kcache "k8s.io/client-go/tools/cache"
 	kcmd "k8s.io/client-go/tools/clientcmd"
@@ -119,10 +118,43 @@ func watchEndpoints(client *kclient.Clientset, ch chan<- *kapi.Endpoints, stopCh
 	return store
 }
 
-// TODO: this doen't feel right, but it appears to work
-// converts a v1.Pod to an api.Pod and checks its readiness
-func isV1PodReady(p *kapi.Pod) bool {
-	var cp kapi_unversioned.Pod
-	err := kapi_unversioned.Scheme.Convert(p, &cp, nil)
-	return err == nil && kapi_unversioned.IsPodReady(&cp)
+// IsPodReady returns true if a pod is ready; false otherwise.
+func IsPodReady(pod *kapi.Pod) bool {
+	return isPodReadyConditionTrue(pod.Status)
+}
+
+// IsPodReadyConditionTrue returns true if a pod is ready; false otherwise.
+func isPodReadyConditionTrue(status kapi.PodStatus) bool {
+	condition := getPodReadyCondition(status)
+	return condition != nil && condition.Status == kapi.ConditionTrue
+}
+
+// GetPodReadyCondition extracts the pod ready condition from the given status and returns that.
+// Returns nil if the condition is not present.
+func getPodReadyCondition(status kapi.PodStatus) *kapi.PodCondition {
+	_, condition := getPodCondition(&status, kapi.PodReady)
+	return condition
+}
+
+// GetPodCondition extracts the provided condition from the given status and returns that.
+// Returns nil and -1 if the condition is not present, and the index of the located condition.
+func getPodCondition(status *kapi.PodStatus, conditionType kapi.PodConditionType) (int, *kapi.PodCondition) {
+	if status == nil {
+		return -1, nil
+	}
+	return getPodConditionFromList(status.Conditions, conditionType)
+}
+
+// GetPodConditionFromList extracts the provided condition from the given list of condition and
+// returns the index of the condition and the condition. Returns -1 and nil if the condition is not present.
+func getPodConditionFromList(conditions []kapi.PodCondition, conditionType kapi.PodConditionType) (int, *kapi.PodCondition) {
+	if conditions == nil {
+		return -1, nil
+	}
+	for i := range conditions {
+		if conditions[i].Type == conditionType {
+			return i, &conditions[i]
+		}
+	}
+	return -1, nil
 }

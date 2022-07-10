@@ -2,6 +2,7 @@ package kubegen
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	kapi "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "k8s.io/client-go/kubernetes"
-	kapi "k8s.io/client-go/pkg/api/v1"
 )
 
 var (
@@ -92,21 +93,21 @@ func (g *generator) execute() error {
 	log.Println("refreshing state...")
 	start := time.Now()
 	if g.loadPods {
-		if p, err := g.Client.Pods(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		if p, err := g.Client.CoreV1().Pods(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading pods: %v", err)
 		} else {
 			ctx.Pods = p.Items
 		}
 	}
 	if g.loadSvcs {
-		if p, err := g.Client.Services(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		if p, err := g.Client.CoreV1().Services(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading services: %v", err)
 		} else {
 			ctx.Services = p.Items
 		}
 	}
 	if g.loadEps {
-		if p, err := g.Client.Endpoints(metav1.NamespaceAll).List(kapi.ListOptions{}); err != nil {
+		if p, err := g.Client.CoreV1().Endpoints(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading endpoints: %v", err)
 		} else {
 			ctx.Endpoints = p.Items
