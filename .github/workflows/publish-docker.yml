@@ -12,12 +12,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: '[Dockerhub] Docker Login'
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME}} --password-stdin
     - name: '[Github] Docker Login'
       run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u actions --password-stdin
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u actions --password-stdin ghcr.io
+    - name: '[Dockerhub] Docker Login'
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME}}" --password-stdin
     - name: Build and push image
       run: make push-image
     - name: Send Slack Notification
