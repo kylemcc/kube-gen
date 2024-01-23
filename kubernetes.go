@@ -13,9 +13,14 @@ import (
 func newKubeClient(c Config) (*kclient.Clientset, error) {
 	var config *krest.Config
 	var err error
-	if c.Host == "" {
+	if c.Host == "" && !c.UseInClusterConfig {
 		// use the current context in kubeconfig
 		config, err = kcmd.BuildConfigFromFlags("", c.Kubeconfig)
+		if err != nil {
+			return nil, err
+		}
+	} else if c.UseInClusterConfig {
+		config, err = krest.InClusterConfig()
 		if err != nil {
 			return nil, err
 		}

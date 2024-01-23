@@ -27,20 +27,21 @@ var (
 )
 
 type Config struct {
-	Host           string
-	Kubeconfig     string
-	TemplatePath   string
-	TemplateString string
-	Output         string
-	Overwrite      bool
-	Watch          bool
-	PreCmd         string
-	PostCmd        string
-	LogCmdOutput   bool
-	Interval       int
-	MinWait        time.Duration
-	MaxWait        time.Duration
-	ResourceTypes  []string
+	Host               string
+	Kubeconfig         string
+	TemplatePath       string
+	TemplateString     string
+	Output             string
+	Overwrite          bool
+	Watch              bool
+	PreCmd             string
+	PostCmd            string
+	LogCmdOutput       bool
+	Interval           int
+	MinWait            time.Duration
+	MaxWait            time.Duration
+	ResourceTypes      []string
+	UseInClusterConfig bool
 }
 
 type Generator interface {
