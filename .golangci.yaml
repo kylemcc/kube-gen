@@ -1,0 +1,31 @@
+linters:
+  disable-all: false
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - gofmt
+    - bodyclose
+    - errname
+    - errorlint
+    - exportloopref
+    - goimports
+    - goprintffuncname
+    - gosec
+    - misspell
+    - nilerr
+    - nilnil
+    - predeclared
+    - stylecheck
+    - thelper
+    - tparallel
+    - unparam
+    - whitespace
+    - staticcheck
+    - govet
+    - forcetypeassert
+    - goconst
+    #- gochecknoglobals
+linters-settings:
+  gofmt:
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'

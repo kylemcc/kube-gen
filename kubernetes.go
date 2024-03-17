@@ -51,17 +51,17 @@ func watchPods(client *kclient.Clientset, ch chan<- *kapi.Pod, stopCh chan struc
 		&kapi.Pod{},
 		0,
 		kcache.ResourceEventHandlerFuncs{
-			AddFunc: func(v interface{}) {
+			AddFunc: func(v any) {
 				if p, ok := v.(*kapi.Pod); ok {
 					ch <- p
 				}
 			},
-			UpdateFunc: func(ov, nv interface{}) {
+			UpdateFunc: func(ov, nv any) {
 				if p, ok := nv.(*kapi.Pod); ok {
 					ch <- p
 				}
 			},
-			DeleteFunc: func(v interface{}) {
+			DeleteFunc: func(v any) {
 				if p, ok := v.(*kapi.Pod); ok {
 					ch <- p
 				}
@@ -77,17 +77,17 @@ func watchServices(client *kclient.Clientset, ch chan<- *kapi.Service, stopCh ch
 		&kapi.Service{},
 		0,
 		kcache.ResourceEventHandlerFuncs{
-			AddFunc: func(v interface{}) {
+			AddFunc: func(v any) {
 				if s, ok := v.(*kapi.Service); ok {
 					ch <- s
 				}
 			},
-			UpdateFunc: func(ov, nv interface{}) {
+			UpdateFunc: func(ov, nv any) {
 				if s, ok := nv.(*kapi.Service); ok {
 					ch <- s
 				}
 			},
-			DeleteFunc: func(v interface{}) {
+			DeleteFunc: func(v any) {
 				if s, ok := v.(*kapi.Service); ok {
 					ch <- s
 				}
@@ -103,17 +103,17 @@ func watchEndpoints(client *kclient.Clientset, ch chan<- *kapi.Endpoints, stopCh
 		&kapi.Endpoints{},
 		0,
 		kcache.ResourceEventHandlerFuncs{
-			AddFunc: func(v interface{}) {
+			AddFunc: func(v any) {
 				if e, ok := v.(*kapi.Endpoints); ok {
 					ch <- e
 				}
 			},
-			UpdateFunc: func(ov, nv interface{}) {
+			UpdateFunc: func(ov, nv any) {
 				if e, ok := nv.(*kapi.Endpoints); ok {
 					ch <- e
 				}
 			},
-			DeleteFunc: func(v interface{}) {
+			DeleteFunc: func(v any) {
 				if e, ok := v.(*kapi.Endpoints); ok {
 					ch <- e
 				}

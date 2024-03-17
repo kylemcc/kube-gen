@@ -33,8 +33,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -51,7 +53,7 @@ func arrayClosest(values []string, input string) string {
 }
 
 // coalesce returns the first non nil argument
-func coalesce(input ...interface{}) interface{} {
+func coalesce(input ...any) any {
 	for _, v := range input {
 		if v != nil {
 			return v
@@ -76,7 +78,7 @@ func dirList(path string) ([]string, error) {
 
 // first returns first item in the array or nil if the
 // input is nil or empty
-func first(input interface{}) interface{} {
+func first(input any) any {
 	if input == nil {
 		return nil
 	}
@@ -90,9 +92,9 @@ func first(input interface{}) interface{} {
 	return arr.Index(0).Interface()
 }
 
-func keys(input interface{}) (interface{}, error) {
+func keys(input any) (any, error) {
 	if input == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil
 	}
 
 	val := reflect.ValueOf(input)
@@ -101,7 +103,7 @@ func keys(input interface{}) (interface{}, error) {
 	}
 
 	vk := val.MapKeys()
-	k := make([]interface{}, val.Len())
+	k := make([]any, val.Len())
 	for i := range k {
 		k[i] = vk[i].Interface()
 	}
@@ -110,7 +112,7 @@ func keys(input interface{}) (interface{}, error) {
 }
 
 // last returns last item in the array
-func last(input interface{}) interface{} {
+func last(input any) any {
 	if input == nil {
 		return nil
 	}
@@ -129,14 +131,13 @@ func mapContains(item map[string]string, key string) bool {
 }
 
 // Generalized groupBy function
-func generalizedGroupBy(funcName string, entries interface{}, getValue func(interface{}) (interface{}, error), addEntry func(map[string][]interface{}, interface{}, interface{})) (map[string][]interface{}, error) {
+func generalizedGroupBy(funcName string, entries any, getValue func(any) (any, error), addEntry func(map[string][]any, any, any)) (map[string][]any, error) {
 	entriesVal, err := getArrayValues(funcName, entries)
-
 	if err != nil {
 		return nil, err
 	}
 
-	groups := make(map[string][]interface{})
+	groups := make(map[string][]any)
 	for i := 0; i < entriesVal.Len(); i++ {
 		v := reflect.Indirect(entriesVal.Index(i)).Interface()
 		value, err := getValue(v)
@@ -150,16 +151,16 @@ func generalizedGroupBy(funcName string, entries interface{}, getValue func(inte
 	return groups, nil
 }
 
-func generalizedGroupByKey(funcName string, entries interface{}, key string, addEntry func(map[string][]interface{}, interface{}, interface{})) (map[string][]interface{}, error) {
-	getKey := func(v interface{}) (interface{}, error) {
+func generalizedGroupByKey(funcName string, entries any, key string, addEntry func(map[string][]any, any, any)) (map[string][]any, error) {
+	getKey := func(v any) (any, error) {
 		return deepGet(v, key), nil
 	}
 	return generalizedGroupBy(funcName, entries, getKey, addEntry)
 }
 
-func groupByMulti(entries interface{}, key, sep string) (map[string][]interface{}, error) {
-	return generalizedGroupByKey("groupByMulti", entries, key, func(groups map[string][]interface{}, value interface{}, v interface{}) {
-		items := strings.Split(value.(string), sep)
+func groupByMulti(entries any, key, sep string) (map[string][]any, error) {
+	return generalizedGroupByKey("groupByMulti", entries, key, func(groups map[string][]any, value any, v any) {
+		items := strings.Split(value.(string), sep) //nolint:forcetypeassert
 		for _, item := range items {
 			groups[item] = append(groups[item], v)
 		}
@@ -167,18 +168,17 @@ func groupByMulti(entries interface{}, key, sep string) (map[string][]interface{
 }
 
 // groupBy groups a generic array or slice by the path property key
-func groupBy(entries interface{}, key string) (map[string][]interface{}, error) {
-	return generalizedGroupByKey("groupBy", entries, key, func(groups map[string][]interface{}, value interface{}, v interface{}) {
-		groups[value.(string)] = append(groups[value.(string)], v)
+func groupBy(entries any, key string) (map[string][]any, error) {
+	return generalizedGroupByKey("groupBy", entries, key, func(groups map[string][]any, value any, v any) {
+		groups[value.(string)] = append(groups[value.(string)], v) //nolint:forcetypeassert
 	})
 }
 
 // groupByKeys is the same as groupBy but only returns a list of keys
-func groupByKeys(entries interface{}, key string) ([]string, error) {
-	keys, err := generalizedGroupByKey("groupByKeys", entries, key, func(groups map[string][]interface{}, value interface{}, v interface{}) {
-		groups[value.(string)] = append(groups[value.(string)], v)
+func groupByKeys(entries any, key string) ([]string, error) {
+	keys, err := generalizedGroupByKey("groupByKeys", entries, key, func(groups map[string][]any, value any, v any) {
+		groups[value.(string)] = append(groups[value.(string)], v) //nolint:forcetypeassert
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -190,11 +190,11 @@ func groupByKeys(entries interface{}, key string) ([]string, error) {
 	return ret, nil
 }
 
-func dict(values ...interface{}) (map[string]interface{}, error) {
+func dict(values ...any) (map[string]any, error) {
 	if len(values)%2 != 0 {
 		return nil, errors.New("invalid dict call")
 	}
-	dict := make(map[string]interface{}, len(values)/2)
+	dict := make(map[string]any, len(values)/2)
 	for i := 0; i < len(values); i += 2 {
 		key, ok := values[i].(string)
 		if !ok {
@@ -206,7 +206,7 @@ func dict(values ...interface{}) (map[string]interface{}, error) {
 }
 
 // when returns the trueValue when the condition is true and the falseValue otherwise
-func when(condition bool, trueValue, falseValue interface{}) interface{} {
+func when(condition bool, trueValue, falseValue any) any {
 	if condition {
 		return trueValue
 	} else {
@@ -215,14 +215,13 @@ func when(condition bool, trueValue, falseValue interface{}) interface{} {
 }
 
 // Generalized where function
-func generalizedWhere(funcName string, entries interface{}, key string, test func(interface{}) bool) (interface{}, error) {
+func generalizedWhere(funcName string, entries any, key string, test func(any) bool) (any, error) {
 	entriesVal, err := getArrayValues(funcName, entries)
-
 	if err != nil {
 		return nil, err
 	}
 
-	selection := make([]interface{}, 0)
+	selection := make([]any, 0)
 	for i := 0; i < entriesVal.Len(); i++ {
 		v := reflect.Indirect(entriesVal.Index(i)).Interface()
 
@@ -236,52 +235,52 @@ func generalizedWhere(funcName string, entries interface{}, key string, test fun
 }
 
 // selects entries based on key
-func where(entries interface{}, key string, cmp interface{}) (interface{}, error) {
-	return generalizedWhere("where", entries, key, func(value interface{}) bool {
+func where(entries any, key string, cmp any) (any, error) {
+	return generalizedWhere("where", entries, key, func(value any) bool {
 		return reflect.DeepEqual(value, cmp)
 	})
 }
 
 // selects entries where a key exists
-func whereExist(entries interface{}, key string) (interface{}, error) {
-	return generalizedWhere("whereExist", entries, key, func(value interface{}) bool {
+func whereExist(entries any, key string) (any, error) {
+	return generalizedWhere("whereExist", entries, key, func(value any) bool {
 		return value != nil
 	})
 }
 
 // selects entries where a key does not exist
-func whereNotExist(entries interface{}, key string) (interface{}, error) {
-	return generalizedWhere("whereNotExist", entries, key, func(value interface{}) bool {
+func whereNotExist(entries any, key string) (any, error) {
+	return generalizedWhere("whereNotExist", entries, key, func(value any) bool {
 		return value == nil
 	})
 }
 
 // selects entries based on key.  Assumes key is delimited and breaks it apart before comparing
-func whereAny(entries interface{}, key, sep string, cmp []string) (interface{}, error) {
-	return generalizedWhere("whereAny", entries, key, func(value interface{}) bool {
+func whereAny(entries any, key, sep string, cmp []string) (any, error) {
+	return generalizedWhere("whereAny", entries, key, func(value any) bool {
 		if value == nil {
 			return false
 		} else {
-			items := strings.Split(value.(string), sep)
+			items := strings.Split(value.(string), sep) //nolint:forcetypeassert
 			return len(intersect(cmp, items)) > 0
 		}
 	})
 }
 
 // selects entries based on key.  Assumes key is delimited and breaks it apart before comparing
-func whereAll(entries interface{}, key, sep string, cmp []string) (interface{}, error) {
-	req_count := len(cmp)
-	return generalizedWhere("whereAll", entries, key, func(value interface{}) bool {
+func whereAll(entries any, key, sep string, cmp []string) (any, error) {
+	reqCount := len(cmp)
+	return generalizedWhere("whereAll", entries, key, func(value any) bool {
 		if value == nil {
 			return false
 		} else {
-			items := strings.Split(value.(string), sep)
-			return len(intersect(cmp, items)) == req_count
+			items := strings.Split(value.(string), sep) //nolint:forcetypeassert
+			return len(intersect(cmp, items)) == reqCount
 		}
 	})
 }
 
-func getArrayValues(funcName string, entries interface{}) (*reflect.Value, error) {
+func getArrayValues(funcName string, entries any) (*reflect.Value, error) {
 	entriesVal := reflect.ValueOf(entries)
 
 	kind := entriesVal.Kind()
@@ -329,44 +328,50 @@ func exists(path string) (bool, error) {
 	return false, err
 }
 
-func stripPrefix(s, prefix string) string {
-	path := s
-	for {
-		if strings.HasPrefix(path, ".") {
-			path = path[1:]
-			continue
-		}
-		break
-	}
-	return path
-}
-
-func deepGet(item interface{}, path string) interface{} {
-	if path == "" {
-		return item
-	}
-
-	path = stripPrefix(path, ".")
-	parts := strings.Split(path, ".")
-	itemValue := reflect.ValueOf(item)
-
-	if len(parts) > 0 {
-		switch itemValue.Kind() {
-		case reflect.Struct:
-			fieldValue := itemValue.FieldByName(parts[0])
-			if fieldValue.IsValid() {
-				return deepGet(fieldValue.Interface(), strings.Join(parts[1:], "."))
-			}
-		case reflect.Map:
-			mapValue := itemValue.MapIndex(reflect.ValueOf(parts[0]))
-			if mapValue.IsValid() {
-				return deepGet(mapValue.Interface(), strings.Join(parts[1:], "."))
-			}
-		default:
-			log.Printf("Can't group by %s (value %v, kind %s)\n", path, itemValue, itemValue.Kind())
-		}
+func deepGetImpl(v reflect.Value, path []string) any {
+	if !v.IsValid() {
 		return nil
 	}
+	if len(path) == 0 {
+		return v.Interface()
+	}
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	if v.Kind() == reflect.Pointer {
+		log.Printf("unable to descend into pointer of a pointer\n")
+		return nil
+	}
+	switch v.Kind() {
+	case reflect.Struct:
+		return deepGetImpl(v.FieldByName(path[0]), path[1:])
+	case reflect.Map:
+		return deepGetImpl(v.MapIndex(reflect.ValueOf(path[0])), path[1:])
+	case reflect.Slice, reflect.Array:
+		iu64, err := strconv.ParseUint(path[0], 10, 64)
+		if err != nil {
+			log.Printf("non-negative decimal number required for array/slice index, got %#v\n", path[0])
+			return nil
+		}
+		if iu64 > math.MaxInt {
+			iu64 = math.MaxInt
+		}
+		i := int(iu64)
+		if i >= v.Len() {
+			log.Printf("index %v out of bounds", i)
+			return nil
+		}
+		return deepGetImpl(v.Index(i), path[1:])
+	default:
+		log.Printf("unable to index by %s (value %v, kind %s)\n", path[0], v, v.Kind())
+		return nil
+	}
+}
 
-	return itemValue.Interface()
+func deepGet(item any, path string) any {
+	var parts []string
+	if path != "" {
+		parts = strings.Split(strings.TrimPrefix(path, "."), ".")
+	}
+	return deepGetImpl(reflect.ValueOf(item), parts)
 }

@@ -18,13 +18,11 @@ import (
 	kclient "k8s.io/client-go/kubernetes"
 )
 
-var (
-	validTypes = map[string]bool{
-		"pods":      true,
-		"services":  true,
-		"endpoints": true,
-	}
-)
+var validTypes = map[string]bool{
+	"pods":      true,
+	"services":  true,
+	"endpoints": true,
+}
 
 type Config struct {
 	Host               string
@@ -95,21 +93,21 @@ func (g *generator) execute() error {
 	start := time.Now()
 	if g.loadPods {
 		if p, err := g.Client.CoreV1().Pods(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
-			return fmt.Errorf("error loading pods: %v", err)
+			return fmt.Errorf("error loading pods: %w", err)
 		} else {
 			ctx.Pods = p.Items
 		}
 	}
 	if g.loadSvcs {
 		if p, err := g.Client.CoreV1().Services(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
-			return fmt.Errorf("error loading services: %v", err)
+			return fmt.Errorf("error loading services: %w", err)
 		} else {
 			ctx.Services = p.Items
 		}
 	}
 	if g.loadEps {
 		if p, err := g.Client.CoreV1().Endpoints(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
-			return fmt.Errorf("error loading endpoints: %v", err)
+			return fmt.Errorf("error loading endpoints: %w", err)
 		} else {
 			ctx.Endpoints = p.Items
 		}
@@ -178,7 +176,7 @@ func (g *generator) watchEvents() error {
 	}
 
 	// channel for receiving events from the kubernetes api
-	eventCh := make(chan interface{})
+	eventCh := make(chan any)
 	// debounce rapidly occurring events
 	debounceCh := newDebouncer(eventCh, g.Config.MinWait, g.Config.MaxWait)
 	go func() {
@@ -235,11 +233,11 @@ func (g *generator) writeFile(content []byte) error {
 		os.Remove(tmp.Name())
 	}()
 	if err != nil {
-		return fmt.Errorf("error creating temp file: %v", err)
+		return fmt.Errorf("error creating temp file: %w", err)
 	}
 
 	if _, err := tmp.Write(content); err != nil {
-		return fmt.Errorf("error writing temp file: %v", err)
+		return fmt.Errorf("error writing temp file: %w", err)
 	}
 
 	var (
@@ -253,7 +251,7 @@ func (g *generator) writeFile(content []byte) error {
 			return err
 		}
 		if oldContent, err = ioutil.ReadFile(g.Config.Output); err != nil {
-			return fmt.Errorf("error comparing old version: %v", err)
+			return fmt.Errorf("error comparing old version: %w", err)
 		}
 	}
 
@@ -265,7 +263,7 @@ func (g *generator) writeFile(content []byte) error {
 		}
 
 		if err = moveFile(tmp, g.Config.Output); err != nil {
-			return fmt.Errorf("error creating output file: %v", err)
+			return fmt.Errorf("error creating output file: %w", err)
 		}
 		log.Printf("output file [%s] created\n", g.Config.Output)
 	}
@@ -279,10 +277,10 @@ func (g *generator) runCmd(cs string) error {
 	}
 
 	log.Printf("running command [%v]\n", cs)
-	cmd := exec.Command(SHELL_EXE, SHELL_ARG, cs)
+	cmd := exec.Command(shellExe, shellArg, cs)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error running command: %v", err)
+		return fmt.Errorf("error running command: %w", err)
 	}
 	if g.Config.LogCmdOutput {
 		log.Printf("%s: %s\n", cs, out)
@@ -312,15 +310,15 @@ func newSigChan() <-chan os.Signal {
 	return ch
 }
 
-func newDebouncer(inCh chan interface{}, minWait, maxWait time.Duration) chan interface{} {
+func newDebouncer(inCh chan any, minWait, maxWait time.Duration) chan any {
 	if minWait < 1 {
 		return inCh
 	}
 
-	outCh := make(chan interface{}, 100)
+	outCh := make(chan any, 100)
 	go func() {
 		var (
-			latestEvent interface{}
+			latestEvent any
 			minTimer    <-chan time.Time
 			maxTimer    <-chan time.Time
 		)
