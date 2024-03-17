@@ -131,7 +131,7 @@ golangci-lint:
 	fi
 
 .PHONY: check
-check: test fmt staticcheck vet gosec ## Runs test, fmt, staticcheck, vet, and gosec
+check: test fmt ## Runs test and fmt
 
 .PHONY: install
 install:

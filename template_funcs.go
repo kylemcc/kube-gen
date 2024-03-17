@@ -32,8 +32,8 @@ var Funcs = template.FuncMap{
 	"hasField":      hasField,
 	"intersect":     intersect,
 	"isPodReady":    isPodReady,
-	"isValidJson":   isValidJson,
-	"json":          marshalJson,
+	"isValidJson":   isValidJSON,
+	"json":          marshalJSON,
 	"pathJoin":      filepath.Join,
 	"pathJoinSlice": pathJoinSlice,
 	"keys":          keys,
@@ -41,8 +41,8 @@ var Funcs = template.FuncMap{
 	"dict":          dict,
 	"mapContains":   mapContains,
 	"parseBool":     strconv.ParseBool,
-	"parseJson":     unmarshalJson,
-	"parseJsonSafe": unmarshalJsonSafe,
+	"parseJson":     unmarshalJSON,
+	"parseJsonSafe": unmarshalJSONSafe,
 	"readyPods":     readyPods,
 	"replace":       strings.Replace,
 	"shell":         execShell,
@@ -71,7 +71,7 @@ func add(input, delta int) int {
 }
 
 // returns a slice of the input array/slice containing elements between begin (inclusive) and end (exclusive) indices
-func slice(input interface{}, begin, end int) (interface{}, error) {
+func slice(input any, begin, end int) (any, error) {
 	if input == nil {
 		return input, nil
 	}
@@ -86,7 +86,7 @@ func slice(input interface{}, begin, end int) (interface{}, error) {
 }
 
 // combine multiple slices into a single slice
-func combine(slices ...interface{}) ([]interface{}, error) {
+func combine(slices ...any) ([]any, error) {
 	var cnt int
 	for _, s := range slices {
 		val := reflect.ValueOf(s)
@@ -95,7 +95,7 @@ func combine(slices ...interface{}) ([]interface{}, error) {
 		}
 		cnt += val.Len()
 	}
-	ret := make([]interface{}, 0, cnt)
+	ret := make([]any, 0, cnt)
 	for _, s := range slices {
 		val := reflect.ValueOf(s)
 		for i := 0; i < val.Len(); i++ {
@@ -106,13 +106,13 @@ func combine(slices ...interface{}) ([]interface{}, error) {
 }
 
 // returns bool indicating whether the provided value contains the specified field
-func hasField(input interface{}, field string) bool {
+func hasField(input any, field string) bool {
 	return deepGet(input, field) != nil
 }
 
-func values(input interface{}) (interface{}, error) {
+func values(input any) (any, error) {
 	if input == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil
 	}
 
 	val := reflect.ValueOf(input)
@@ -121,7 +121,7 @@ func values(input interface{}) (interface{}, error) {
 	}
 
 	keys := val.MapKeys()
-	vals := make([]interface{}, val.Len())
+	vals := make([]any, val.Len())
 	for i := range keys {
 		vals[i] = val.MapIndex(keys[i]).Interface()
 	}
@@ -129,7 +129,7 @@ func values(input interface{}) (interface{}, error) {
 	return vals, nil
 }
 
-func marshalJson(input interface{}) (string, error) {
+func marshalJSON(input any) (string, error) {
 	if b, err := json.Marshal(input); err != nil {
 		return "", err
 	} else {
@@ -137,26 +137,26 @@ func marshalJson(input interface{}) (string, error) {
 	}
 }
 
-func unmarshalJson(input string) (interface{}, error) {
-	var v interface{}
+func unmarshalJSON(input string) (any, error) {
+	var v any
 	if err := json.Unmarshal([]byte(input), &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
-// unmarshalJsonSafe is the same as unmarshalJson, but returns nil if
+// unmarshalJSONSafe is the same as unmarshalJson, but returns nil if
 // json.Unmarshal returns an error
-func unmarshalJsonSafe(input string) interface{} {
-	var v interface{}
+func unmarshalJSONSafe(input string) any {
+	var v any
 	if err := json.Unmarshal([]byte(input), &v); err != nil {
 		return nil
 	}
 	return v
 }
 
-func isValidJson(input string) bool {
-	_, err := unmarshalJson(input)
+func isValidJSON(input string) bool {
+	_, err := unmarshalJSON(input)
 	return err == nil
 }
 
@@ -171,7 +171,7 @@ func execShell(cs string) *ShellResult {
 		stdout bytes.Buffer
 		stderr bytes.Buffer
 	)
-	cmd := exec.Command(SHELL_EXE, SHELL_ARG, cs)
+	cmd := exec.Command(shellExe, shellArg, cs)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
@@ -183,7 +183,7 @@ func execShell(cs string) *ShellResult {
 	return res
 }
 
-func isPodReady(i interface{}) bool {
+func isPodReady(i any) bool {
 	if p, ok := i.(kapi.Pod); ok {
 		return IsPodReady(&p)
 	} else if p, ok := i.(*kapi.Pod); ok {
