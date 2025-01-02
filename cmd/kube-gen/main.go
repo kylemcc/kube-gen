@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -109,7 +109,7 @@ runtime:  %s
 `, version.Version, version.BuildTime, version.GitCommit, runtime.Version())
 }
 
-func parseWait(w string) (min time.Duration, max time.Duration, err error) {
+func parseWait(w string) (minWait time.Duration, maxWait time.Duration, err error) {
 	w = strings.TrimSpace(w)
 	if len(w) == 0 {
 		return 0, 0, nil
@@ -117,12 +117,12 @@ func parseWait(w string) (min time.Duration, max time.Duration, err error) {
 		return 0, 0, errors.New("minimum is required")
 	}
 	parts := strings.Split(w, ":")
-	if min, err = time.ParseDuration(parts[0]); err != nil {
+	if minWait, err = time.ParseDuration(parts[0]); err != nil {
 		return
 	}
 	if len(parts) > 1 && len(parts[1]) > 0 {
-		max, err = time.ParseDuration(parts[1])
-		if err == nil && max < min {
+		maxWait, err = time.ParseDuration(parts[1])
+		if err == nil && maxWait < minWait {
 			err = errors.New("max must be greater than or equal to min")
 		}
 	}
@@ -130,14 +130,14 @@ func parseWait(w string) (min time.Duration, max time.Duration, err error) {
 }
 
 func tmplFromStdin() ([]byte, error) {
-	return ioutil.ReadAll(os.Stdin)
+	return io.ReadAll(os.Stdin)
 }
 
 func main() {
 	parseFlags()
 
 	if quiet {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	}
 
 	if showVersion {
