@@ -33,7 +33,7 @@ var (
 	quiet        bool
 	showVersion  bool
 	inCluster    bool
-	nodeEnvvar   string
+	node         string
 
 	flags = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 )
@@ -80,8 +80,8 @@ func parseFlags() {
 		"If not specified, all types will be returned")
 	flags.BoolVar(&showVersion, "version", false, "display version information")
 	flags.BoolVar(&watch, "watch", false, "watch for new events")
-	flags.StringVar(&nodeEnvvar, "node-envvar", "", "only watch pods in the node specified by this environment variable. "+
-		"If not specified, watch pods in the whole cluster")
+	flags.StringVar(&node, "node", os.Getenv("KUBEGEN_NODE"), "If specified, only watch pods on the specified node. "+
+		"If not specified, watch pods in the whole cluster. May also be set using the KUBEGEN_NODE environment variable.")
 	flags.StringVar(&preCmd, "pre-cmd", "", "command to run before template generation")
 	flags.StringVar(&postCmd, "post-cmd", "", "command to run after template generation in complete")
 	flags.BoolVar(&logCmdOutput, "log-cmd", true, "log the output of the pre/post commands")
@@ -132,17 +132,6 @@ func parseWait(w string) (min time.Duration, max time.Duration, err error) {
 	return
 }
 
-func getNode(env string) (node string, err error) {
-	if env == "" {
-		return "", nil
-	}
-	if node, ok := os.LookupEnv(env); ok {
-		return node, nil
-	}
-	err = fmt.Errorf("envvar %s not found", env)
-	return
-}
-
 func tmplFromStdin() ([]byte, error) {
 	return ioutil.ReadAll(os.Stdin)
 }
@@ -162,11 +151,6 @@ func main() {
 	if narg := flags.NArg(); narg < 1 || narg > 2 {
 		flags.Usage()
 		os.Exit(1)
-	}
-
-	node, err := getNode(nodeEnvvar)
-	if err != nil {
-		log.Fatalf("error getting node: %v", err)
 	}
 
 	minWait, maxWait, err := parseWait(wait)
