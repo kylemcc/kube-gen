@@ -31,7 +31,6 @@ package kubegen
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -65,7 +64,7 @@ func coalesce(input ...any) any {
 // dirList returns a list of files in the specified path
 func dirList(path string) ([]string, error) {
 	names := []string{}
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Printf("Template error: %v", err)
 		return names, nil
@@ -356,7 +355,7 @@ func deepGetImpl(v reflect.Value, path []string) any {
 		if iu64 > math.MaxInt {
 			iu64 = math.MaxInt
 		}
-		i := int(iu64)
+		i := int(iu64) //nolint:gosec
 		if i >= v.Len() {
 			log.Printf("index %v out of bounds", i)
 			return nil

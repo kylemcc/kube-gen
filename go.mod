@@ -1,6 +1,6 @@
 module github.com/kylemcc/kube-gen
 
-go 1.18
+go 1.23
 
 require (
 	go4.org v0.0.0-20201209231011-d4a079459e60
