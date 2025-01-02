@@ -6,7 +6,7 @@ linters:
     - bodyclose
     - errname
     - errorlint
-    - exportloopref
+    - copyloopvar
     - goimports
     - goprintffuncname
     - gosec
