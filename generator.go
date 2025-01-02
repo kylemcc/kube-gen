@@ -93,7 +93,7 @@ func (g *generator) execute() error {
 	log.Println("refreshing state...")
 	start := time.Now()
 	if g.loadPods {
-		listOptions := kapi.ListOptions{}
+		listOptions := metav1.ListOptions{}
 		if g.Config.Node != "" {
 			listOptions.FieldSelector = fmt.Sprintf("spec.nodeName=%s", g.Config.Node)
 			log.Println("loading pods in node", g.Config.Node)
