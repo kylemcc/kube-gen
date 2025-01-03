@@ -33,6 +33,7 @@ var (
 	quiet        bool
 	showVersion  bool
 	inCluster    bool
+	node         string
 
 	flags = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 )
@@ -79,6 +80,8 @@ func parseFlags() {
 		"If not specified, all types will be returned")
 	flags.BoolVar(&showVersion, "version", false, "display version information")
 	flags.BoolVar(&watch, "watch", false, "watch for new events")
+	flags.StringVar(&node, "node", os.Getenv("KUBEGEN_NODE"), "If specified, only watch pods on the specified node. "+
+		"If not specified, watch pods in the whole cluster. May also be set using the KUBEGEN_NODE environment variable.")
 	flags.StringVar(&preCmd, "pre-cmd", "", "command to run before template generation")
 	flags.StringVar(&postCmd, "post-cmd", "", "command to run after template generation in complete")
 	flags.BoolVar(&logCmdOutput, "log-cmd", true, "log the output of the pre/post commands")
@@ -183,6 +186,7 @@ func main() {
 		MaxWait:            maxWait,
 		Interval:           interval,
 		UseInClusterConfig: inCluster,
+		Node:               node,
 	}
 
 	gen, err := kubegen.NewGenerator(conf)

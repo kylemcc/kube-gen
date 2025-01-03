@@ -39,6 +39,7 @@ type Config struct {
 	MaxWait            time.Duration
 	ResourceTypes      []string
 	UseInClusterConfig bool
+	Node               string
 }
 
 type Generator interface {
@@ -91,6 +92,11 @@ func (g *generator) execute() error {
 	log.Println("refreshing state...")
 	start := time.Now()
 	if g.loadPods {
+		listOptions := metav1.ListOptions{}
+		if g.Config.Node != "" {
+			listOptions.FieldSelector = fmt.Sprintf("spec.nodeName=%s", g.Config.Node)
+			log.Println("loading pods in node", g.Config.Node)
+		}
 		if p, err := g.Client.CoreV1().Pods(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{}); err != nil {
 			return fmt.Errorf("error loading pods: %w", err)
 		} else {
@@ -157,7 +163,7 @@ func (g *generator) watchEvents() error {
 	if g.loadPods {
 		nWatchers++
 		podCh = make(chan *kapi.Pod)
-		watchPods(g.Client, podCh, stopCh)
+		watchPods(g.Client, g.Config.Node, podCh, stopCh)
 	}
 	if g.loadSvcs {
 		nWatchers++
