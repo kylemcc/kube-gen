@@ -141,7 +141,7 @@ install:
 .PHONY: tag
 tag: ## Creates a new git tag for the current version
 	git tag -sa $(VERSION) -m "$(VERSION)"
-	git push origin main $(VERSION)
+	git push origin master $(VERSION)
 
 .PHONY: help
 help:
