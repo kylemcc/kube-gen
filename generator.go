@@ -234,7 +234,6 @@ func (g *generator) writeFile(content []byte) error {
 	// write to a temp file first so we can copy it into place with a single atomic operation
 	tmp, err := os.CreateTemp("", fmt.Sprintf("kube-gen-%d", time.Now().UnixNano()))
 	defer func() {
-		tmp.Close()
 		os.Remove(tmp.Name())
 	}()
 	if err != nil {
@@ -244,6 +243,8 @@ func (g *generator) writeFile(content []byte) error {
 	if _, err := tmp.Write(content); err != nil {
 		return fmt.Errorf("error writing temp file: %w", err)
 	}
+
+	tmp.Close()
 
 	var (
 		oldContent []byte
